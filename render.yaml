@@ -1,0 +1,23 @@
+# Render Blueprint for the wedding API (server/index.ts).
+# Render dashboard → New → Blueprint → pick this repo. Secrets marked `sync: false`
+# are typed into the dashboard once and never stored in git.
+services:
+  - type: web
+    name: wedding-kvhm-api
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install --legacy-peer-deps --include=dev --no-audit --no-fund
+    startCommand: npm run server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: MONGODB_URI
+        sync: false
+      - key: ADMIN_PASSCODE_HASH
+        sync: false
+      - key: MONGODB_DB
+        value: wedding_kvhm
+      - key: ALLOWED_ORIGINS
+        value: https://vinhkhanhdu-dev.github.io,http://localhost:3000

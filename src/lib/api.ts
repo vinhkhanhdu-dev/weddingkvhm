@@ -25,7 +25,8 @@ export class ApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (API_BASE === null) throw new ApiError(0, 'API chưa được cấu hình');
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 10_000);
+  // Free API hosts sleep when idle and need ~30–50s to wake on the first request
+  const timeout = window.setTimeout(() => controller.abort(), 60_000);
   try {
     const res = await fetch(`${API_BASE}${path}`, {
       ...init,
