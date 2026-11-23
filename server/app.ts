@@ -226,7 +226,12 @@ app.get(
   '/api/health',
   asyncRoute(async (_req, res) => {
     await client!.db('admin').command({ ping: 1 });
-    res.json({ ok: true, db: DB_NAME });
+    // Cluster domain only (no credentials) — lets you confirm which Atlas cluster this
+    // deployment reads, e.g. "ju09i8v.mongodb.net"
+    const host = client!.options.hosts[0]?.host || '';
+    const cluster = host.split('.').slice(1).join('.');
+    const hasConfig = (await settings.countDocuments({ _id: CONFIG_DOC_ID })) > 0;
+    res.json({ ok: true, db: DB_NAME, cluster, hasConfig });
   })
 );
 
