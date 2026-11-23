@@ -18,6 +18,33 @@ export const Ornament: React.FC<{ className?: string }> = ({ className = '' }) =
   </svg>
 );
 
+/**
+ * Stylised double-happiness (song hỷ) mark drawn with plain strokes.
+ * Hidden by default; the Song Hỷ themes switch it on via .theme-emblem in index.css.
+ */
+export const ThemeEmblem: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <span aria-hidden="true" className={`theme-emblem ${className}`}>
+    <svg
+      viewBox="0 0 100 100"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="4.5"
+      strokeLinecap="square"
+    >
+      {/* shared horizontals join the two halves */}
+      <path d="M6 14h88M6 55h88" />
+      {[0, 50].map((dx) => (
+        <g key={dx} transform={`translate(${dx} 0)`}>
+          <path d="M25 5v19M11 24h28" />
+          <rect x="13" y="32" width="24" height="13" />
+          <path d="M18 60l3 7M32 60l-3 7M10 70h30" />
+          <rect x="13" y="78" width="24" height="15" />
+        </g>
+      ))}
+    </svg>
+  </span>
+);
+
 interface SectionHeadingProps {
   eyebrow: string;
   title: React.ReactNode;
@@ -47,18 +74,18 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
     >
       <p
         className={`eyebrow ${centered ? 'eyebrow-rule' : 'eyebrow-rule-start'} ${
-          dark ? '!text-[#C9A66B]' : ''
+          dark ? '!text-gold' : ''
         }`}
       >
         {eyebrow}
       </p>
-      <h2 className={`display-title mt-4 ${dark ? '!text-[#FBF3E4] [&_em]:!text-[#EBD9B4]' : ''}`}>
+      <h2 className={`display-title mt-4 ${dark ? '!text-cream [&_em]:!text-champagne' : ''}`}>
         {title}
       </h2>
       {description && (
         <p
           className={`mt-4 text-[15px] leading-[1.75] ${
-            dark ? 'text-[#E9D9C4]/75' : 'text-[#75675E]'
+            dark ? 'text-cream-muted/75' : 'text-muted'
           }`}
         >
           {description}

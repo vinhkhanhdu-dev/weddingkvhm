@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { MotionConfig } from 'motion/react';
 import { DEFAULT_WEDDING_CONFIG, DEFAULT_WISHES } from './data/defaultWedding';
 import { RsvpSubmission, WeddingConfig, WishEntry } from './types/wedding';
@@ -14,7 +14,21 @@ import { CeremonySchedule } from './components/CeremonySchedule';
 import { GallerySection } from './components/GallerySection';
 import { RsvpAndWishes } from './components/RsvpAndWishes';
 import { SettingsPage } from './components/SettingsPage';
-import { Ornament } from './components/Ornament';
+import { Ornament, ThemeEmblem } from './components/Ornament';
+import { resolveTheme } from './data/themes';
+import { MinimalismInvitation } from './components/minimalism/MinimalismInvitation';
+import { SongHyInvitation } from './components/songhy/SongHyInvitation';
+import { SongHyV2Invitation } from './components/songhyv2/SongHyV2Invitation';
+import {
+  createRsvp,
+  createWish,
+  fetchConfig,
+  fetchRsvpSummary,
+  saveConfig,
+  fetchWishes,
+  heartWish,
+  isApiConfigured,
+} from './lib/api';
 
 function isSettingsRoute(): boolean {
   if (typeof window === 'undefined') return false;
@@ -71,7 +85,10 @@ function readStorage<T>(key: string, fallback: T): T {
 }
 
 function readWeddingConfig(): WeddingConfig {
-  const stored = readStorage<WeddingConfig>(STORAGE_KEYS.CONFIG, DEFAULT_WEDDING_CONFIG);
+  return normalizeConfig(readStorage<WeddingConfig>(STORAGE_KEYS.CONFIG, DEFAULT_WEDDING_CONFIG));
+}
+
+function normalizeConfig(stored: WeddingConfig): WeddingConfig {
   return {
     ...stored,
     heroImage: mapAsset(stored.heroImage),
@@ -82,13 +99,63 @@ function readWeddingConfig(): WeddingConfig {
 }
 
 export default function App() {
+  // Local copy paints instantly; the MongoDB version replaces it once loaded
   const [config, setConfig] = useState<WeddingConfig>(readWeddingConfig);
+  const [configMode, setConfigMode] = useState<'checking' | 'online' | 'offline'>(
+    isApiConfigured ? 'checking' : 'offline'
+  );
+
+  useEffect(() => {
+    if (!isApiConfigured) return;
+    let cancelled = false;
+    fetchConfig()
+      .then((remote) => {
+        if (cancelled) return;
+        const next = normalizeConfig(remote);
+        setConfig(next);
+        setConfigMode('online');
+        try {
+          window.localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(next));
+        } catch {
+          // Ignore storage quota errors
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setConfigMode('offline');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [wishes, setWishes] = useState<WishEntry[]>(() =>
     readStorage<WishEntry[]>(STORAGE_KEYS.WISHES, DEFAULT_WISHES)
   );
   const [rsvps, setRsvps] = useState<RsvpSubmission[]>(() =>
     readStorage<RsvpSubmission[]>(STORAGE_KEYS.RSVPS, [])
   );
+  // 'online' = wishes/RSVPs live in MongoDB via the API; 'offline' = browser-only fallback
+  const [dataMode, setDataMode] = useState<'checking' | 'online' | 'offline'>(
+    isApiConfigured ? 'checking' : 'offline'
+  );
+  const [remoteAttendingGuests, setRemoteAttendingGuests] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!isApiConfigured) return;
+    let cancelled = false;
+    Promise.all([fetchWishes(), fetchRsvpSummary()])
+      .then(([remoteWishes, summary]) => {
+        if (cancelled) return;
+        setWishes(remoteWishes);
+        setRemoteAttendingGuests(summary.attendingGuests);
+        setDataMode('online');
+      })
+      .catch(() => {
+        if (!cancelled) setDataMode('offline');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const [introOpen, setIntroOpen] = useState(true);
   const [introKey, setIntroKey] = useState(0);
@@ -120,11 +187,31 @@ export default function App() {
     }));
   };
 
+  // Apply the chosen theme before paint so the page never flashes the wrong colours
+  // ?theme=<id> previews a theme for this visitor only, without saving it
+  const [previewThemeId] = useState(() =>
+    typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('theme')
+  );
+  const theme = resolveTheme(previewThemeId || config.theme);
+  useLayoutEffect(() => {
+    // The settings page keeps its own neutral look
+    document.documentElement.dataset.theme = isSettings ? 'classic' : theme.id;
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', theme.preview.bg);
+  }, [theme.id, theme.preview.bg, isSettings]);
+
   useEffect(() => {
     document.title = `Thiệp Mời Thành Hôn — ${config.brideName} & ${config.groomName}`;
   }, [config.brideName, config.groomName]);
 
-  const handleSaveConfig = (nextConfig: WeddingConfig) => {
+  // With the API configured, MongoDB is the source of truth: a failed save rejects so the
+  // settings page can show the error instead of pretending it was published.
+  const handleSaveConfig = async (nextConfig: WeddingConfig, passcode: string) => {
+    if (isApiConfigured) {
+      await saveConfig(nextConfig, passcode);
+      setConfigMode('online');
+    }
     setConfig(nextConfig);
     try {
       window.localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(nextConfig));
@@ -133,7 +220,10 @@ export default function App() {
     }
   };
 
-  const handleResetConfig = () => {
+  const handleResetConfig = async (passcode: string) => {
+    if (isApiConfigured) {
+      await saveConfig(DEFAULT_WEDDING_CONFIG, passcode);
+    }
     setConfig(DEFAULT_WEDDING_CONFIG);
     try {
       window.localStorage.removeItem(STORAGE_KEYS.CONFIG);
@@ -142,7 +232,23 @@ export default function App() {
     }
   };
 
-  const handleAddWish = (wish: Omit<WishEntry, 'id' | 'createdAt' | 'hearts'>) => {
+  const persistLocal = (key: string, value: unknown) => {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Ignore storage quota errors
+    }
+  };
+
+  // In online mode a failed save rejects, so the form can ask the guest to retry
+  // instead of silently keeping the wish in their own browser only.
+  const handleAddWish = async (wish: Omit<WishEntry, 'id' | 'createdAt' | 'hearts'>) => {
+    if (dataMode === 'online') {
+      const saved = await createWish(wish);
+      setWishes((prev) => [saved, ...prev]);
+      launchFireworks('celebration');
+      return;
+    }
     const next: WishEntry = {
       ...wish,
       id: `wish-${Date.now()}`,
@@ -152,26 +258,35 @@ export default function App() {
     const updated = [next, ...wishes];
     setWishes(updated);
     launchFireworks('celebration');
-    try {
-      window.localStorage.setItem(STORAGE_KEYS.WISHES, JSON.stringify(updated));
-    } catch {
-      // Ignore
-    }
+    persistLocal(STORAGE_KEYS.WISHES, updated);
   };
 
   const handleHeartWish = (id: string) => {
-    const updated = wishes.map((w) =>
-      w.id === id ? { ...w, hearts: w.hearts + 1 } : w
-    );
-    setWishes(updated);
-    try {
-      window.localStorage.setItem(STORAGE_KEYS.WISHES, JSON.stringify(updated));
-    } catch {
-      // Ignore
+    const bump = (delta: number) => (list: WishEntry[]) =>
+      list.map((w) => (w.id === id ? { ...w, hearts: w.hearts + delta } : w));
+
+    if (dataMode === 'online') {
+      setWishes(bump(1));
+      heartWish(id)
+        .then((hearts) =>
+          setWishes((prev) => prev.map((w) => (w.id === id ? { ...w, hearts } : w)))
+        )
+        .catch(() => setWishes(bump(-1)));
+      return;
     }
+    const updated = bump(1)(wishes);
+    setWishes(updated);
+    persistLocal(STORAGE_KEYS.WISHES, updated);
   };
 
-  const handleSubmitRsvp = (rsvp: Omit<RsvpSubmission, 'id' | 'submittedAt'>) => {
+  const handleSubmitRsvp = async (rsvp: Omit<RsvpSubmission, 'id' | 'submittedAt'>) => {
+    if (dataMode === 'online') {
+      await createRsvp(rsvp);
+      setRemoteAttendingGuests((prev) =>
+        rsvp.attending === 'yes' ? (prev ?? 0) + rsvp.guestCount : prev
+      );
+      return;
+    }
     const next: RsvpSubmission = {
       ...rsvp,
       id: `rsvp-${Date.now()}`,
@@ -179,12 +294,14 @@ export default function App() {
     };
     const updated = [next, ...rsvps];
     setRsvps(updated);
-    try {
-      window.localStorage.setItem(STORAGE_KEYS.RSVPS, JSON.stringify(updated));
-    } catch {
-      // Ignore
-    }
+    persistLocal(STORAGE_KEYS.RSVPS, updated);
   };
+
+  const localAttendingGuests = rsvps
+    .filter((r) => r.attending === 'yes')
+    .reduce((acc, r) => acc + r.guestCount, 0);
+  const attendingGuests =
+    dataMode === 'online' ? remoteAttendingGuests : rsvps.length > 0 ? localAttendingGuests : null;
 
   const handleReplayIntro = () => {
     setIntroKey((k) => k + 1);
@@ -199,14 +316,38 @@ export default function App() {
           onBackToInvitation={handleBackToInvitation}
           onSave={handleSaveConfig}
           onReset={handleResetConfig}
+          serverMode={isApiConfigured}
+          configMode={configMode}
         />
+      </MotionConfig>
+    );
+  }
+
+  if (theme.layout === 'minimalism' || theme.layout === 'songhy' || theme.layout === 'songhyv2') {
+    const Layout =
+      theme.layout === 'songhyv2'
+        ? SongHyV2Invitation
+        : theme.layout === 'songhy'
+          ? SongHyInvitation
+          : MinimalismInvitation;
+    return (
+      <MotionConfig reducedMotion="user">
+        <Layout
+          config={config}
+          wishes={wishes}
+          onAddWish={handleAddWish}
+          onSubmitRsvp={handleSubmitRsvp}
+          showIntro={introOpen}
+          onIntroDone={() => setIntroOpen(false)}
+        />
+        <AmbientAudioButton />
       </MotionConfig>
     );
   }
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-screen bg-[#FBF8F2] text-[#2B1F1C] relative overflow-x-clip">
+      <div className="min-h-screen bg-paper text-ink relative overflow-x-clip">
         {introOpen && (
           <EnvelopeIntro
             key={introKey}
@@ -221,7 +362,7 @@ export default function App() {
         )}
 
         <FireworksCanvas trigger={fireworkTrigger} />
-        <PetalCanvas active={!introOpen} />
+        <PetalCanvas active={!introOpen} theme={theme.id} />
         <AmbientAudioButton />
 
         <Navbar brideName={config.brideName} groomName={config.groomName} />
@@ -245,22 +386,23 @@ export default function App() {
             wishes={wishes}
             onAddWish={handleAddWish}
             onHeartWish={handleHeartWish}
-            rsvps={rsvps}
+            attendingGuests={attendingGuests}
             onSubmitRsvp={handleSubmitRsvp}
           />
         </main>
 
         <footer className="wine-surface relative px-6 pt-16 sm:pt-20 pb-36 lg:pb-16 text-center overflow-hidden">
           <div className="max-w-[720px] mx-auto">
-            <p className="eyebrow eyebrow-rule !text-[#C9A66B]">Trân Trọng Cảm Ơn</p>
-            <p className="font-script text-[clamp(1.5rem,7.6vw,4rem)] whitespace-nowrap text-[#FBF3E4] mt-6 pt-2">
-              {config.brideName} <span className="text-[#C9A66B]">&amp;</span> {config.groomName}
+            <ThemeEmblem className="mb-6 mx-auto !text-gold" />
+            <p className="eyebrow eyebrow-rule !text-gold">Trân Trọng Cảm Ơn</p>
+            <p className="font-script text-[clamp(1.375rem,6.6vw,2.75rem)] whitespace-nowrap text-cream mt-6 pt-2">
+              {config.brideName} <span className="font-serif text-[0.8em] text-gold">&amp;</span> {config.groomName}
             </p>
-            <Ornament className="text-[#C9A66B] mx-auto mt-5" />
-            <p className="mt-6 font-serif italic text-xl text-[#E9D9C4]/85 leading-relaxed text-balance">
+            <Ornament className="text-gold mx-auto mt-5" />
+            <p className="mt-6 font-serif italic text-xl text-cream-muted/85 leading-relaxed text-balance">
               Cảm ơn bạn đã là một phần trong ngày hạnh phúc của chúng mình.
             </p>
-            <p className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3 text-[11px] tracking-[0.26em] uppercase text-[#C9A66B] whitespace-nowrap">
+            <p className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3 text-[11px] tracking-[0.26em] uppercase text-gold whitespace-nowrap">
               <span>{config.displayDate}</span>
               <span aria-hidden="true" className="hidden sm:inline">
                 ·

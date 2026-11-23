@@ -21,7 +21,7 @@ export const LoveStoryTimeline: React.FC<LoveStoryTimelineProps> = ({ config }) 
     <section
       id="cau-chuyen"
       ref={containerRef}
-      className="py-16 sm:py-28 bg-[#F4EDE1] border-y border-[#E4D9C8]"
+      className="py-16 sm:py-28 bg-linen border-y border-hairline"
     >
       <div className="max-w-[1120px] mx-auto px-5 sm:px-8">
         <SectionHeading
@@ -38,12 +38,12 @@ export const LoveStoryTimeline: React.FC<LoveStoryTimelineProps> = ({ config }) 
         <div className="relative">
           <div
             aria-hidden="true"
-            className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-[#D9CBB5]"
+            className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-hairline-strong"
           />
           <motion.div
             aria-hidden="true"
             style={{ scaleY: spineScale, transformOrigin: 'top center' }}
-            className="hidden md:block absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 bg-gradient-to-b from-[#88292F] to-[#C9A66B]"
+            className="hidden md:block absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 bg-gradient-to-b from-seal to-gold"
           />
 
           <div className="space-y-16 sm:space-y-28">
@@ -61,7 +61,7 @@ export const LoveStoryTimeline: React.FC<LoveStoryTimelineProps> = ({ config }) 
                     viewport={{ once: true, amount: 0.5 }}
                     transition={{ duration: 0.5, ease: EASE }}
                     aria-hidden="true"
-                    className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-[#F4EDE1] border border-[#88292F]/60 items-center justify-center font-serif italic text-base text-[#88292F] shadow-[0_0_0_6px_#F4EDE1]"
+                    className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-lg bg-linen border border-seal/60 items-center justify-center font-serif italic text-base text-seal shadow-[0_0_0_6px_var(--color-linen)]"
                   >
                     {num}
                   </motion.div>
@@ -82,7 +82,7 @@ export const LoveStoryTimeline: React.FC<LoveStoryTimelineProps> = ({ config }) 
                         isEven ? '-translate-x-2' : 'translate-x-2'
                       } translate-y-2`}
                     />
-                    <div className="arch relative aspect-[3/4] bg-[#E9DFCE] shadow-[var(--shadow-lift)] group">
+                    <div className="arch relative aspect-[3/4] bg-sand shadow-[var(--shadow-lift)] group">
                       <ResilientImage
                         src={chapter.image}
                         alt={chapter.title}
@@ -104,19 +104,19 @@ export const LoveStoryTimeline: React.FC<LoveStoryTimelineProps> = ({ config }) 
                   >
                     <span
                       aria-hidden="true"
-                      className="block font-serif italic text-7xl sm:text-8xl leading-none text-[#C9A66B]/35 select-none"
+                      className="block font-serif italic text-6xl sm:text-7xl leading-none text-gold/35 select-none"
                     >
                       {num}
                     </span>
                     <p className="eyebrow mt-3">{chapter.dateLabel}</p>
-                    <h3 className="font-serif text-[clamp(1.4rem,6.9vw,1.875rem)] sm:text-[2.5rem] font-medium text-[#2B1F1C] leading-tight mt-3 text-balance">
+                    <h3 className="font-serif text-[clamp(1.4rem,6.9vw,1.875rem)] sm:text-[2.5rem] font-medium text-ink leading-tight mt-3 text-balance">
                       {chapter.title}
                     </h3>
-                    <p className="mt-4 text-[15px] leading-[1.85] text-[#75675E]">
+                    <p className="mt-4 text-[15px] leading-[1.85] text-muted">
                       {chapter.description}
                     </p>
                     <p
-                      className={`mt-5 inline-flex items-center gap-1.5 text-xs text-[#88292F] ${
+                      className={`mt-5 inline-flex items-center gap-1.5 text-xs text-seal ${
                         isEven ? '' : 'md:flex-row-reverse'
                       }`}
                     >

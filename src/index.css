@@ -1,25 +1,72 @@
 @import "tailwindcss";
 
-@theme {
+/*
+ * Theme tokens. The values below are the default "classic" theme; every other theme
+ * overrides the same variables in the THEMES section further down. Components only use
+ * these tokens (bg-paper, text-seal, ...), never raw hex, so a theme is just a new set
+ * of values. Theme list + names live in src/data/themes.ts.
+ */
+@theme static {
   --font-serif: "Cormorant Garamond", Georgia, Cambria, "Times New Roman", serif;
   --font-sans: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-script: "Great Vibes", "Cormorant Garamond", cursive;
+  --font-script: "Cormorant Garamond", Georgia, "Times New Roman", serif;
 
+  /* Page surfaces */
   --color-paper: #FBF8F2;
+  --color-surface: #FFFDF9;
   --color-linen: #F4EDE1;
   --color-sand: #E9DFCE;
-  --color-ink: #2B1F1C;
-  --color-muted: #75675E;
   --color-hairline: #E4D9C8;
-  --color-seal: #88292F;
-  --color-seal-deep: #5E1820;
-  --color-wine: #3B0F15;
-  --color-bronze: #A8834E;
-  --color-gold: #C9A66B;
-  --color-champagne: #EBD9B4;
+  --color-hairline-strong: #D8CBB8;
 
-  --shadow-soft: 0 1px 2px rgba(59, 15, 21, 0.04), 0 12px 32px -12px rgba(59, 15, 21, 0.14);
-  --shadow-lift: 0 2px 4px rgba(59, 15, 21, 0.05), 0 28px 60px -24px rgba(59, 15, 21, 0.28);
+  /* Text */
+  --color-ink: #2B1F1C;
+  --color-ink-soft: #45332E;
+  --color-muted: #75675E;
+  --color-placeholder: #A99C90;
+
+  /* Primary accent + text placed on it */
+  --color-seal: #88292F;
+  --color-seal-light: #A03A42;
+  --color-seal-deep: #5E1820;
+  --color-on-seal: #FFF9F0;
+
+  /* Secondary accent */
+  --color-bronze: #A8834E;
+
+  /* Dark feature panels (countdown, venue card, gallery, footer) + text placed on them */
+  --color-wine: #3B0F15;
+  --color-wine-deep: #1F0709;
+  --color-cream: #FBF3E4;
+  --color-cream-muted: #E9D9C4;
+  --color-champagne: #EBD9B4;
+  --color-gold: #C9A66B;
+
+  --color-success: #14532D;
+  --color-shadow: #3B0F15;
+}
+
+:root {
+  --shadow-soft: 0 1px 2px color-mix(in srgb, var(--color-shadow) 4%, transparent),
+    0 12px 32px -12px color-mix(in srgb, var(--color-shadow) 14%, transparent);
+  --shadow-lift: 0 2px 4px color-mix(in srgb, var(--color-shadow) 5%, transparent),
+    0 28px 60px -24px color-mix(in srgb, var(--color-shadow) 28%, transparent);
+
+  /* Decorative glows */
+  --tex-1: rgba(201, 166, 107, 0.16);
+  --tex-2: rgba(136, 41, 47, 0.07);
+  --panel-glow-1: rgba(136, 41, 47, 0.75);
+  --panel-glow-2: rgba(120, 36, 44, 0.6);
+
+  /* Falling petals (PetalCanvas reads these) */
+  --petal-1: rgba(244, 224, 220, 0.72);
+  --petal-2: rgba(255, 250, 244, 0.85);
+  --petal-3: rgba(218, 185, 148, 0.45);
+  --petal-4: rgba(196, 124, 128, 0.35);
+
+  /* Burgundy calligraphy PNG: recoloured on dark themes */
+  --crest-filter: none;
+  --font-numeric: inherit;
 }
 
 @layer base {
@@ -42,6 +89,10 @@
 
   a, button, [role="button"] {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-seal) 22%, transparent);
   }
 
   :focus-visible {
@@ -84,7 +135,7 @@
 .display-title {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: clamp(2.125rem, 4.6vw, 3.5rem);
+  font-size: clamp(2rem, 3.6vw, 2.75rem);
   line-height: 1.08;
   letter-spacing: -0.012em;
   color: var(--color-ink);
@@ -94,7 +145,7 @@
 /* Keep section titles on one line on phones */
 @media (max-width: 639px) {
   .display-title {
-    font-size: clamp(1.5rem, 7.4vw, 2.125rem);
+    font-size: clamp(1.5rem, 6.8vw, 1.875rem);
   }
 
   .eyebrow {
@@ -109,9 +160,12 @@
   color: var(--color-seal);
 }
 
+/* Couple-name display face (class name kept from the earlier script font) */
 .font-script {
   font-family: var(--font-script);
-  font-weight: 400;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: 0.01em;
   line-height: 1.15;
 }
 
@@ -121,7 +175,7 @@
   justify-content: center;
   gap: 0.6rem;
   padding: 0.9rem 1.75rem;
-  border-radius: 999px;
+  border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -137,18 +191,25 @@
 }
 
 .btn-primary {
-  background: linear-gradient(180deg, #96323A 0%, var(--color-seal) 55%, #762129 100%);
-  color: #FFF9F0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 10px 24px -10px rgba(136, 41, 47, 0.65);
+  background: linear-gradient(
+    180deg,
+    var(--color-seal-light) 0%,
+    var(--color-seal) 55%,
+    var(--color-seal-deep) 100%
+  );
+  color: var(--color-on-seal);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 10px 24px -10px color-mix(in srgb, var(--color-seal) 65%, transparent);
 }
 
 .btn-primary:hover {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 16px 30px -10px rgba(136, 41, 47, 0.75);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 16px 30px -10px color-mix(in srgb, var(--color-seal) 75%, transparent);
   transform: translateY(-1px);
 }
 
 .btn-outline {
-  border: 1px solid rgba(136, 41, 47, 0.35);
+  border: 1px solid color-mix(in srgb, var(--color-seal) 35%, transparent);
   color: var(--color-seal);
   background: transparent;
 }
@@ -156,20 +217,20 @@
 .btn-outline:hover {
   background: var(--color-seal);
   border-color: var(--color-seal);
-  color: #FFF9F0;
+  color: var(--color-on-seal);
 }
 
 .btn-dark {
   background: var(--color-ink);
-  color: #FFF9F0;
+  color: var(--color-paper);
 }
 
 .btn-dark:hover {
-  background: #45332E;
+  background: var(--color-ink-soft);
 }
 
 .btn-gold {
-  border: 1px solid rgba(201, 166, 107, 0.6);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 60%, transparent);
   color: var(--color-champagne);
 }
 
@@ -185,31 +246,31 @@
 }
 
 .card {
-  background: #FFFDF9;
+  background: var(--color-surface);
   border: 1px solid var(--color-hairline);
-  border-radius: 1.25rem;
+  border-radius: 12px;
   box-shadow: var(--shadow-soft);
 }
 
 .field {
   width: 100%;
   padding: 0.8rem 1rem;
-  background: #FFFDF9;
+  background: var(--color-surface);
   border: 1px solid var(--color-hairline);
-  border-radius: 0.75rem;
+  border-radius: 8px;
   font-size: 0.875rem;
   color: var(--color-ink);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .field::placeholder {
-  color: #A99C90;
+  color: var(--color-placeholder);
 }
 
 .field:focus {
   outline: none;
   border-color: var(--color-seal);
-  box-shadow: 0 0 0 4px rgba(136, 41, 47, 0.1);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-seal) 12%, transparent);
 }
 
 .field-label {
@@ -222,32 +283,792 @@
   color: var(--color-muted);
 }
 
-/* Arch photo frame — echoes the arched architecture in the wedding photos */
+/* Photo frame with an offset hairline outline */
 .arch {
-  border-radius: 999px 999px 1.25rem 1.25rem;
+  border-radius: 8px;
   overflow: hidden;
 }
 
 .arch-outline {
-  border-radius: 999px 999px 1.5rem 1.5rem;
-  border: 1px solid rgba(168, 131, 78, 0.55);
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--color-bronze) 55%, transparent);
 }
 
-/* Soft paper texture built from layered gradients */
+/* Soft page texture built from layered gradients */
 .paper-texture {
   background-image:
-    radial-gradient(60rem 36rem at 12% -10%, rgba(201, 166, 107, 0.16), transparent 60%),
-    radial-gradient(48rem 32rem at 100% 10%, rgba(136, 41, 47, 0.07), transparent 62%);
+    radial-gradient(60rem 36rem at 12% -10%, var(--tex-1), transparent 60%),
+    radial-gradient(48rem 32rem at 100% 10%, var(--tex-2), transparent 62%);
 }
 
+/* Dark feature panel */
 .wine-surface {
   background-color: var(--color-wine);
   background-image:
-    radial-gradient(50rem 30rem at 15% 0%, rgba(136, 41, 47, 0.75), transparent 65%),
-    radial-gradient(44rem 28rem at 95% 100%, rgba(120, 36, 44, 0.6), transparent 60%);
+    radial-gradient(50rem 30rem at 15% 0%, var(--panel-glow-1), transparent 65%),
+    radial-gradient(44rem 28rem at 95% 100%, var(--panel-glow-2), transparent 60%);
+}
+
+.theme-crest {
+  filter: var(--crest-filter);
+}
+
+/* ---------- Dark-theme adjustments (all dark themes) ---------- */
+:root:is([data-theme="midnight"], [data-theme="neon"], [data-theme="aurora"]) {
+  .card {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), var(--shadow-soft);
+  }
+
+  .wine-surface {
+    border: 1px solid color-mix(in srgb, var(--color-seal) 18%, var(--color-hairline));
+  }
+
+  section.wine-surface,
+  footer.wine-surface {
+    border-left: 0;
+    border-right: 0;
+  }
+}
+
+/* ---------- High-tech styling (neon + aurora) ---------- */
+:root:is([data-theme="neon"], [data-theme="aurora"]) {
+  .display-title {
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.12;
+  }
+
+  /* Accent word: gradient text instead of serif italic */
+  .display-title em {
+    font-style: normal;
+    font-weight: 600;
+    background: var(--grad-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .font-script {
+    font-weight: 600;
+    letter-spacing: -0.035em;
+  }
+
+  h1.font-script {
+    background: linear-gradient(120deg, var(--color-ink) 10%, var(--color-seal) 55%, var(--color-bronze));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* The "&" between the names keeps its own solid colour */
+  h1.font-script span {
+    -webkit-text-fill-color: currentColor;
+  }
+
+  h1.font-script > span.block {
+    -webkit-text-fill-color: transparent;
+  }
+
+  .eyebrow {
+    font-family: var(--font-numeric);
+    letter-spacing: 0.2em;
+    color: var(--color-seal);
+  }
+
+  .eyebrow::before {
+    opacity: 1;
+  }
+
+  /* Blueprint grid + corner glows */
+  .paper-texture {
+    background-image:
+      radial-gradient(60rem 36rem at 12% -10%, var(--tex-1), transparent 60%),
+      radial-gradient(48rem 32rem at 100% 10%, var(--tex-2), transparent 62%),
+      linear-gradient(color-mix(in srgb, var(--color-seal) 7%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-seal) 7%, transparent) 1px, transparent 1px);
+    background-size: auto, auto, 44px 44px, 44px 44px;
+  }
+
+  /* Glass panels with a luminous edge */
+  .card {
+    background: color-mix(in srgb, var(--color-surface) 78%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-color: color-mix(in srgb, var(--color-seal) 22%, var(--color-hairline));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 0 0 1px color-mix(in srgb, var(--color-seal) 5%, transparent),
+      0 30px 70px -40px color-mix(in srgb, var(--color-seal) 55%, transparent);
+  }
+
+  .wine-surface {
+    border-color: color-mix(in srgb, var(--color-seal) 30%, transparent);
+    box-shadow: inset 0 0 60px -30px color-mix(in srgb, var(--color-seal) 40%, transparent);
+  }
+
+  .btn {
+    letter-spacing: 0.12em;
+    font-weight: 600;
+  }
+
+  .btn-primary {
+    background: var(--grad-accent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-seal-light) 40%, transparent),
+      0 10px 30px -8px color-mix(in srgb, var(--color-seal) 70%, transparent),
+      0 0 40px -12px color-mix(in srgb, var(--color-bronze) 80%, transparent);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-seal-light) 70%, transparent),
+      0 14px 36px -8px color-mix(in srgb, var(--color-seal) 85%, transparent),
+      0 0 56px -10px color-mix(in srgb, var(--color-bronze) 90%, transparent);
+  }
+
+  .btn-outline {
+    border-color: color-mix(in srgb, var(--color-seal) 55%, transparent);
+    background: color-mix(in srgb, var(--color-seal) 6%, transparent);
+  }
+
+  .field:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-seal) 22%, transparent),
+      0 0 24px -6px color-mix(in srgb, var(--color-seal) 60%, transparent);
+  }
+
+  .arch {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-seal) 45%, transparent),
+      0 0 60px -18px color-mix(in srgb, var(--color-seal) 75%, transparent);
+  }
+
+  .arch-outline {
+    border-color: color-mix(in srgb, var(--color-bronze) 60%, transparent);
+    box-shadow: 0 0 34px -14px var(--color-bronze);
+  }
+
+  /* Numbers read like instrument displays */
+  .tabular-nums {
+    font-family: var(--font-numeric);
+    letter-spacing: -0.02em;
+  }
+
+  .theme-crest {
+    filter: var(--crest-filter) drop-shadow(0 0 14px color-mix(in srgb, var(--color-seal) 55%, transparent));
+  }
 }
 
 }
+
+/* =====================================================================
+   THEMES — each block only reassigns tokens. Keep ids in sync with
+   src/data/themes.ts.
+   ===================================================================== */
+
+/* Xanh lá thanh lịch (light) */
+:root[data-theme="sage"] {
+  --color-paper: #F6F7F1;
+  --color-surface: #FFFFFB;
+  --color-linen: #EDF0E4;
+  --color-sand: #DCE3D0;
+  --color-hairline: #D8DECB;
+  --color-hairline-strong: #C5CEB5;
+  --color-ink: #1E2A22;
+  --color-ink-soft: #34453A;
+  --color-muted: #5E6B5F;
+  --color-placeholder: #9AA596;
+  --color-seal: #3F6B4F;
+  --color-seal-light: #568A69;
+  --color-seal-deep: #2A4A37;
+  --color-on-seal: #F8FBF4;
+  --color-bronze: #9C7C44;
+  --color-wine: #1C3024;
+  --color-wine-deep: #0C1610;
+  --color-cream: #F4F7EC;
+  --color-cream-muted: #D5DDCB;
+  --color-champagne: #E6DDBD;
+  --color-gold: #C9A66B;
+  --color-success: #2F6B45;
+  --color-shadow: #1C3024;
+
+  --tex-1: rgba(201, 166, 107, 0.14);
+  --tex-2: rgba(63, 107, 79, 0.09);
+  --panel-glow-1: rgba(63, 107, 79, 0.7);
+  --panel-glow-2: rgba(42, 74, 55, 0.6);
+  --petal-1: rgba(236, 244, 228, 0.8);
+  --petal-2: rgba(255, 255, 250, 0.85);
+  --petal-3: rgba(201, 166, 107, 0.4);
+  --petal-4: rgba(120, 160, 130, 0.35);
+}
+
+/* Đêm vàng kim (dark, classic serif) */
+:root[data-theme="midnight"] {
+  color-scheme: dark;
+  --color-paper: #0F0E0D;
+  --color-surface: #181614;
+  --color-linen: #141211;
+  --color-sand: #25211D;
+  --color-hairline: #2C2722;
+  --color-hairline-strong: #3E372F;
+  --color-ink: #F2ECE1;
+  --color-ink-soft: #D8CFC1;
+  --color-muted: #A69C8E;
+  --color-placeholder: #6E665B;
+  --color-seal: #D4AF6A;
+  --color-seal-light: #E8CD94;
+  --color-seal-deep: #A88440;
+  --color-on-seal: #17120A;
+  --color-bronze: #B89A5E;
+  --color-wine: #1A1714;
+  --color-wine-deep: #060505;
+  --color-cream: #F6EFE2;
+  --color-cream-muted: #CFC5B4;
+  --color-champagne: #EBD9B4;
+  --color-gold: #D4AF6A;
+  --color-success: #7BD49B;
+  --color-shadow: #000000;
+
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px -18px rgba(0, 0, 0, 0.8);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.5), 0 30px 70px -28px rgba(0, 0, 0, 0.9);
+  --tex-1: rgba(212, 175, 106, 0.1);
+  --tex-2: rgba(212, 175, 106, 0.05);
+  --panel-glow-1: rgba(212, 175, 106, 0.1);
+  --panel-glow-2: rgba(212, 175, 106, 0.06);
+  --petal-1: rgba(232, 205, 148, 0.5);
+  --petal-2: rgba(246, 239, 226, 0.55);
+  --petal-3: rgba(212, 175, 106, 0.4);
+  --petal-4: rgba(168, 132, 64, 0.35);
+  --crest-filter: brightness(0) invert(0.93) sepia(0.35) saturate(1.6) hue-rotate(-8deg);
+}
+
+/* Neon công nghệ (dark, high-tech) */
+:root[data-theme="neon"] {
+  color-scheme: dark;
+  --font-serif: "Be Vietnam Pro", -apple-system, "Segoe UI", sans-serif;
+  --font-script: "Be Vietnam Pro", -apple-system, "Segoe UI", sans-serif;
+  --font-numeric: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  --color-paper: #060A13;
+  --color-surface: #0C1322;
+  --color-linen: #090F1B;
+  --color-sand: #152034;
+  --color-hairline: #1B2940;
+  --color-hairline-strong: #2A3C5C;
+  --color-ink: #E8F1FF;
+  --color-ink-soft: #C6D4EB;
+  --color-muted: #8697B4;
+  --color-placeholder: #53637E;
+  --color-seal: #22D3EE;
+  --color-seal-light: #7DE9FB;
+  --color-seal-deep: #0E9FBF;
+  --color-on-seal: #03131A;
+  --color-bronze: #A78BFA;
+  --color-wine: #0A1120;
+  --color-wine-deep: #02050B;
+  --color-cream: #EAF4FF;
+  --color-cream-muted: #A8B7CF;
+  --color-champagne: #C7D2FE;
+  --color-gold: #7DD3FC;
+  --color-success: #34D399;
+  --color-shadow: #000000;
+
+  --grad-accent: linear-gradient(120deg, #22D3EE 0%, #60A5FA 50%, #A78BFA 100%);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.5), 0 18px 44px -20px rgba(0, 0, 0, 0.9);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.5), 0 30px 80px -30px rgba(34, 211, 238, 0.35);
+  --tex-1: rgba(34, 211, 238, 0.14);
+  --tex-2: rgba(167, 139, 250, 0.14);
+  --panel-glow-1: rgba(34, 211, 238, 0.16);
+  --panel-glow-2: rgba(167, 139, 250, 0.16);
+  --petal-1: rgba(125, 233, 251, 0.55);
+  --petal-2: rgba(234, 244, 255, 0.5);
+  --petal-3: rgba(167, 139, 250, 0.5);
+  --petal-4: rgba(96, 165, 250, 0.45);
+  --crest-filter: brightness(0) invert(0.95);
+}
+
+/* Cực quang tím (dark, high-tech) */
+:root[data-theme="aurora"] {
+  color-scheme: dark;
+  --font-serif: "Be Vietnam Pro", -apple-system, "Segoe UI", sans-serif;
+  --font-script: "Be Vietnam Pro", -apple-system, "Segoe UI", sans-serif;
+  --font-numeric: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  --color-paper: #0B0715;
+  --color-surface: #140D24;
+  --color-linen: #0F0A1C;
+  --color-sand: #21163A;
+  --color-hairline: #271B42;
+  --color-hairline-strong: #3A2A5E;
+  --color-ink: #F3ECFF;
+  --color-ink-soft: #D9CCF2;
+  --color-muted: #9E8FBD;
+  --color-placeholder: #62557F;
+  --color-seal: #C084FC;
+  --color-seal-light: #DDB6FF;
+  --color-seal-deep: #9333EA;
+  --color-on-seal: #140521;
+  --color-bronze: #F472B6;
+  --color-wine: #120B22;
+  --color-wine-deep: #05030B;
+  --color-cream: #F5EEFF;
+  --color-cream-muted: #BBADD6;
+  --color-champagne: #FBCFE8;
+  --color-gold: #F0ABFC;
+  --color-success: #4ADE80;
+  --color-shadow: #000000;
+
+  --grad-accent: linear-gradient(120deg, #A78BFA 0%, #C084FC 45%, #F472B6 100%);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.5), 0 18px 44px -20px rgba(0, 0, 0, 0.9);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.5), 0 30px 80px -30px rgba(192, 132, 252, 0.4);
+  --tex-1: rgba(192, 132, 252, 0.16);
+  --tex-2: rgba(244, 114, 182, 0.14);
+  --panel-glow-1: rgba(192, 132, 252, 0.2);
+  --panel-glow-2: rgba(244, 114, 182, 0.16);
+  --petal-1: rgba(221, 182, 255, 0.55);
+  --petal-2: rgba(245, 238, 255, 0.5);
+  --petal-3: rgba(244, 114, 182, 0.5);
+  --petal-4: rgba(167, 139, 250, 0.45);
+  --crest-filter: brightness(0) invert(0.95);
+}
+
+.theme-emblem {
+  display: none;
+}
+
+/* Song Hỷ Đỏ — lacquer red & gold (traditional) */
+:root[data-theme="songhy-red"] {
+  --color-paper: #FFF7E8;
+  --color-surface: #FFFCF4;
+  --color-linen: #FBEBD0;
+  --color-sand: #F1DDB8;
+  --color-hairline: #EBD3A6;
+  --color-hairline-strong: #D9BC85;
+  --color-ink: #5A0C10;
+  --color-ink-soft: #7A1A1E;
+  --color-muted: #8A5A4A;
+  --color-placeholder: #BFA088;
+  --color-seal: #B1121B;
+  --color-seal-light: #D0252E;
+  --color-seal-deep: #7F0B12;
+  --color-on-seal: #FFF3D6;
+  --color-bronze: #B8862F;
+  --color-wine: #8E0F17;
+  --color-wine-deep: #4A070B;
+  --color-cream: #FFF3D6;
+  --color-cream-muted: #F3D9A8;
+  --color-champagne: #F6DC9B;
+  --color-gold: #F0C96A;
+  --color-success: #2F6B45;
+  --color-shadow: #5A0C10;
+
+  --tex-1: rgba(240, 201, 106, 0.22);
+  --tex-2: rgba(177, 18, 27, 0.08);
+  --panel-glow-1: rgba(208, 37, 46, 0.85);
+  --panel-glow-2: rgba(127, 11, 18, 0.7);
+  --petal-1: rgba(208, 37, 46, 0.5);
+  --petal-2: rgba(255, 243, 214, 0.85);
+  --petal-3: rgba(240, 201, 106, 0.6);
+  --petal-4: rgba(177, 18, 27, 0.4);
+}
+
+/* Song Hỷ Xanh — deep moss green, cream & gold (traditional) */
+:root[data-theme="songhy-green"] {
+  --color-paper: #FBF7EC;
+  --color-surface: #FFFDF6;
+  --color-linen: #F1ECDB;
+  --color-sand: #E2DCC4;
+  --color-hairline: #DDD5BA;
+  --color-hairline-strong: #C9BF9C;
+  --color-ink: #14301F;
+  --color-ink-soft: #23472F;
+  --color-muted: #5C6B58;
+  --color-placeholder: #A3A88F;
+  --color-seal: #1F4A30;
+  --color-seal-light: #2F6A46;
+  --color-seal-deep: #12301F;
+  --color-on-seal: #FBF3DC;
+  --color-bronze: #B08A3C;
+  --color-wine: #10291A;
+  --color-wine-deep: #07140C;
+  --color-cream: #FBF3DC;
+  --color-cream-muted: #D9D3B8;
+  --color-champagne: #EBDCA8;
+  --color-gold: #D4B466;
+  --color-success: #2F6B45;
+  --color-shadow: #10291A;
+
+  --tex-1: rgba(212, 180, 102, 0.18);
+  --tex-2: rgba(31, 74, 48, 0.08);
+  --panel-glow-1: rgba(47, 106, 70, 0.75);
+  --panel-glow-2: rgba(18, 48, 31, 0.7);
+  --petal-1: rgba(251, 243, 220, 0.85);
+  --petal-2: rgba(255, 255, 250, 0.85);
+  --petal-3: rgba(212, 180, 102, 0.5);
+  --petal-4: rgba(47, 106, 70, 0.35);
+}
+
+/* Shared Song Hỷ styling: emblem on, arched photos, gold double frame on panels */
+:root:is([data-theme="songhy-red"], [data-theme="songhy-green"]) {
+  .theme-emblem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0.7rem;
+    border-radius: 999px;
+    color: var(--color-seal);
+    border: 1px solid color-mix(in srgb, var(--color-bronze) 70%, transparent);
+    box-shadow: 0 0 0 4px var(--color-paper),
+      0 0 0 5px color-mix(in srgb, var(--color-bronze) 35%, transparent);
+  }
+
+  footer .theme-emblem {
+    border-color: color-mix(in srgb, var(--color-gold) 70%, transparent);
+    box-shadow: none;
+  }
+
+  .arch {
+    border-radius: 999px 999px 8px 8px;
+  }
+
+  .arch-outline {
+    border-radius: 999px 999px 10px 10px;
+    border-color: color-mix(in srgb, var(--color-bronze) 75%, transparent);
+  }
+
+  .eyebrow {
+    color: var(--color-bronze);
+    letter-spacing: 0.3em;
+  }
+
+  .display-title {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    font-size: clamp(1.25rem, 5.6vw, 2.25rem);
+  }
+
+  .display-title em {
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .wine-surface {
+    outline: 1px solid color-mix(in srgb, var(--color-gold) 55%, transparent);
+    outline-offset: -7px;
+  }
+
+  section.wine-surface,
+  footer.wine-surface {
+    outline: none;
+    border-top: 3px double color-mix(in srgb, var(--color-gold) 70%, transparent);
+  }
+}
+
+/* Tối Giản Nâu — quiet, flat, thin type */
+:root[data-theme="minimal-brown"] {
+  --color-paper: #F7F2EC;
+  --color-surface: #FDFAF6;
+  --color-linen: #EFE7DD;
+  --color-sand: #E2D6C8;
+  --color-hairline: #E0D5C8;
+  --color-hairline-strong: #CDBFAE;
+  --color-ink: #3B2A20;
+  --color-ink-soft: #54402F;
+  --color-muted: #7D6B5D;
+  --color-placeholder: #B1A294;
+  --color-seal: #6B4A36;
+  --color-seal-light: #6B4A36;
+  --color-seal-deep: #6B4A36;
+  --color-on-seal: #FBF5EC;
+  --color-bronze: #9A7B5B;
+  --color-wine: #3B2A20;
+  --color-wine-deep: #1E1510;
+  --color-cream: #F7EFE4;
+  --color-cream-muted: #D9CBB9;
+  --color-champagne: #E6D5BD;
+  --color-gold: #C7A77F;
+  --color-success: #4F6B45;
+  --color-shadow: #3B2A20;
+
+  --shadow-soft: none;
+  --shadow-lift: 0 18px 40px -28px rgba(59, 42, 32, 0.35);
+  --tex-1: transparent;
+  --tex-2: transparent;
+  --panel-glow-1: transparent;
+  --panel-glow-2: transparent;
+  --petal-1: rgba(226, 214, 200, 0.8);
+  --petal-2: rgba(253, 250, 246, 0.85);
+  --petal-3: rgba(199, 167, 127, 0.4);
+  --petal-4: rgba(154, 123, 91, 0.3);
+  --crest-filter: brightness(0) invert(0.22) sepia(0.7) saturate(1.6) hue-rotate(-18deg);
+
+  .display-title,
+  .font-script {
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  .display-title em {
+    color: var(--color-bronze);
+  }
+
+  .eyebrow {
+    letter-spacing: 0.36em;
+  }
+
+  .btn {
+    border-radius: 2px;
+    letter-spacing: 0.2em;
+  }
+
+  .btn-primary,
+  .btn-primary:hover {
+    background: var(--color-seal);
+    box-shadow: none;
+  }
+
+  .card,
+  .field,
+  .arch,
+  .arch-outline {
+    border-radius: 2px;
+  }
+}
+
+/* Cẩm Thạch Vàng — white marble veining with gold accents */
+:root[data-theme="marble-gold"] {
+  --color-paper: #FAF9F5;
+  --color-surface: #FFFFFF;
+  --color-linen: #F2F0EA;
+  --color-sand: #E5E1D6;
+  --color-hairline: #E3DED2;
+  --color-hairline-strong: #CFC8B6;
+  --color-ink: #2E2A26;
+  --color-ink-soft: #48423B;
+  --color-muted: #77706A;
+  --color-placeholder: #ADA69C;
+  --color-seal: #A9812F;
+  --color-seal-light: #C79E4A;
+  --color-seal-deep: #7F5F1E;
+  --color-on-seal: #FFFDF7;
+  --color-bronze: #8A6A2A;
+  --color-wine: #2E2A26;
+  --color-wine-deep: #171513;
+  --color-cream: #FAF6EC;
+  --color-cream-muted: #D8D0C0;
+  --color-champagne: #EAD9AE;
+  --color-gold: #D4B466;
+  --color-success: #2F6B45;
+  --color-shadow: #2E2A26;
+
+  --tex-1: rgba(212, 180, 102, 0.14);
+  --tex-2: rgba(120, 120, 120, 0.06);
+  --panel-glow-1: rgba(169, 129, 47, 0.28);
+  --panel-glow-2: rgba(169, 129, 47, 0.16);
+  --petal-1: rgba(255, 255, 255, 0.9);
+  --petal-2: rgba(234, 217, 174, 0.7);
+  --petal-3: rgba(212, 180, 102, 0.5);
+  --petal-4: rgba(200, 200, 196, 0.5);
+  --crest-filter: brightness(0) invert(0.3) sepia(0.9) saturate(2.2) hue-rotate(-5deg);
+
+  /* Soft diagonal veins layered over the page glow */
+  .paper-texture {
+    background-image:
+      linear-gradient(115deg, transparent 38%, rgba(140, 132, 118, 0.1) 39%, transparent 41%),
+      linear-gradient(98deg, transparent 61%, rgba(169, 129, 47, 0.12) 62%, transparent 63.5%),
+      linear-gradient(140deg, transparent 18%, rgba(140, 132, 118, 0.07) 19.5%, transparent 22%),
+      linear-gradient(72deg, transparent 78%, rgba(140, 132, 118, 0.08) 79%, transparent 81%),
+      radial-gradient(60rem 36rem at 12% -10%, var(--tex-1), transparent 60%);
+  }
+
+  .display-title em {
+    background: linear-gradient(100deg, #7F5F1E, #D4B466 55%, #A9812F);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .card {
+    border-color: color-mix(in srgb, var(--color-seal) 28%, var(--color-hairline));
+  }
+}
+
+/* Tối Giản Đỏ Đô — cream paper, deep burgundy, photo tucked into an envelope */
+.theme-envelope {
+  display: none;
+}
+
+:root[data-theme="minimal-burgundy"] {
+  --font-script: "Viaoda Libre", "Cormorant Garamond", Georgia, serif;
+
+  --color-paper: #F6EFE4;
+  --color-surface: #FBF6EE;
+  --color-linen: #EFE5D6;
+  --color-sand: #E3D6C2;
+  --color-hairline: #E2D5C2;
+  --color-hairline-strong: #CDBBA2;
+  --color-ink: #4A1019;
+  --color-ink-soft: #651C27;
+  --color-muted: #84645C;
+  --color-placeholder: #B59F92;
+  --color-seal: #5E1420;
+  --color-seal-light: #7A1E2C;
+  --color-seal-deep: #430D16;
+  --color-on-seal: #F8EEDD;
+  --color-bronze: #A07A3C;
+  --color-wine: #56121D;
+  --color-wine-deep: #2B080E;
+  --color-cream: #F8EEDD;
+  --color-cream-muted: #DCC7B4;
+  --color-champagne: #EAD3A8;
+  --color-gold: #D4AE62;
+  --color-success: #2F6B45;
+  --color-shadow: #430D16;
+
+  --tex-1: rgba(160, 122, 60, 0.1);
+  --tex-2: rgba(94, 20, 32, 0.05);
+  --panel-glow-1: rgba(122, 30, 44, 0.55);
+  --panel-glow-2: rgba(67, 13, 22, 0.5);
+  --petal-1: rgba(122, 30, 44, 0.35);
+  --petal-2: rgba(248, 238, 221, 0.85);
+  --petal-3: rgba(212, 174, 98, 0.5);
+  --petal-4: rgba(94, 20, 32, 0.3);
+
+  .font-script {
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .display-title {
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-size: clamp(1.25rem, 5.4vw, 2.125rem);
+  }
+
+  .display-title em {
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .btn {
+    border-radius: 999px;
+  }
+
+  .arch-outline {
+    display: none;
+  }
+
+  /* --- Hero: photo as a print slipped into a burgundy envelope --- */
+  .theme-seal-badge {
+    display: none;
+  }
+
+  .hero-photo-stage {
+    margin: 0.5rem 0 3.25rem;
+  }
+
+  .hero-photo-stage > .arch {
+    width: 74%;
+    margin: 0 auto;
+    border: 7px solid #FFFDF8;
+    border-radius: 3px;
+    transform: rotate(5deg);
+    transform-origin: 50% 100%;
+    box-shadow: 0 14px 30px -14px rgba(43, 8, 14, 0.55);
+  }
+
+  .theme-envelope {
+    display: block;
+    position: absolute;
+    left: 1%;
+    right: 1%;
+    bottom: -13%;
+    height: 46%;
+    border-radius: 0 0 6px 6px;
+    background: linear-gradient(180deg, #6A1826 0%, #56121D 55%, #47101A 100%);
+    /* V-shaped opening: the photo shows through the notch */
+    clip-path: polygon(0 0, 50% 44%, 100% 0, 100% 100%, 0 100%);
+    filter: drop-shadow(0 18px 22px rgba(43, 8, 14, 0.4));
+  }
+
+  /* Bottom flap */
+  .theme-envelope::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
+    clip-path: polygon(0 100%, 50% 50%, 100% 100%);
+  }
+
+  .theme-envelope-seal {
+    position: absolute;
+    left: 50%;
+    top: 47%;
+    width: 3rem;
+    height: 3rem;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font-size: 1.15rem;
+    line-height: 1;
+    color: #8A6420;
+    background: radial-gradient(circle at 35% 30%, #F3DB9A, #D4AE62 55%, #A9812F);
+    box-shadow: inset 0 0 0 3px rgba(138, 100, 32, 0.35), 0 4px 8px rgba(43, 8, 14, 0.45);
+  }
+
+  /* --- "Thông tin lễ cưới": the family card becomes a burgundy panel with cream type --- */
+  #gia-dinh .card {
+    --color-surface: #56121D;
+    --color-ink: #F8EEDD;
+    --color-muted: #DCC7B4;
+    --color-seal: #F3E2C0;
+    --color-bronze: #D4AE62;
+    --crest-filter: brightness(0) invert(0.94) sepia(0.25) saturate(1.4);
+    background: linear-gradient(180deg, #5E1420, #4C0F19);
+    border-color: transparent;
+    box-shadow: 0 24px 50px -28px rgba(43, 8, 14, 0.7);
+  }
+
+  /* --- Opening screen: burgundy backdrop behind the cream envelope --- */
+  .paper-texture.fixed {
+    background-color: #56121D;
+    background-image: radial-gradient(60rem 40rem at 20% 0%, rgba(122, 30, 44, 0.9), transparent 65%),
+      radial-gradient(50rem 36rem at 100% 100%, rgba(43, 8, 14, 0.8), transparent 60%);
+  }
+
+  .paper-texture.fixed .font-script {
+    color: #F8EEDD;
+  }
+
+  .paper-texture.fixed .eyebrow {
+    color: #D4AE62;
+  }
+
+  .paper-texture.fixed .text-muted {
+    color: #DCC7B4;
+  }
+
+  .paper-texture.fixed .btn-primary {
+    background: #F8EEDD;
+    color: #56121D;
+    box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Tech themes use an upright sans everywhere the classic themes use serif italics.
+   Unlayered on purpose so it wins over Tailwind's .italic utility. */
+:root:is([data-theme="neon"], [data-theme="aurora"]) .font-serif.italic {
+  font-style: normal;
+  letter-spacing: -0.01em;
+}
+
+:root:is([data-theme="neon"], [data-theme="aurora"]) .tabular-nums {
+  font-family: var(--font-numeric);
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Utilities ---------- */
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
@@ -285,4 +1106,82 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ---------- Minimalism Đỏ Đậm layout (src/components/minimalism) ---------- */
+@keyframes drFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes mdrAmbientFall {
+  0% { transform: translateY(-8vh) translateX(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.5; }
+  50% { transform: translateY(48vh) translateX(var(--sway, 20px)) rotate(180deg); opacity: 0.6; }
+  92% { opacity: 0.45; }
+  100% { transform: translateY(105vh) translateX(0) rotate(360deg); opacity: 0; }
+}
+@keyframes mdrSealPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 4px 20px var(--shadow-color); }
+  50% { transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 6px 35px var(--shadow-color); }
+}
+@keyframes mdrSealBreak {
+  0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
+  30% { transform: translate(-50%, -50%) scale(1.15) rotate(5deg); opacity: 0.9; filter: brightness(1.3); }
+  100% { transform: translate(-50%, -50%) scale(0) rotate(15deg); opacity: 0; filter: brightness(2); }
+}
+@keyframes mdrEnvelopeAway {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  15% { transform: translateY(10px) rotate(0.5deg); opacity: 1; }
+  100% { transform: translateY(-120vh) rotate(-2deg); opacity: 0; }
+}
+@keyframes mdrShine {
+  0% { left: -100%; }
+  50%, 100% { left: 100%; }
+}
+@keyframes mdrSlideUp {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes mdrFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+@keyframes mdrFloatMain { 0%, 100% { translate: -15% 0; } 50% { translate: -15% -7px; } }
+@keyframes mdrShadowPulse { 0%, 100% { transform: scaleX(1); opacity: 0.28; } 50% { transform: scaleX(0.9); opacity: 0.16; } }
+@keyframes mdrSparkle { 0%, 100% { opacity: 0; transform: scale(0.4); } 50% { opacity: 1; transform: scale(1.15); } }
+@keyframes mdrHint { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+@keyframes mdrGrow { 0% { transform: scale(1); } 100% { transform: scale(1.12); } }
+@keyframes mdrWave {
+  0% { transform: scale(1.12) rotate(0deg); }
+  20% { transform: scale(1.12) rotate(-6deg); }
+  40% { transform: scale(1.12) rotate(4.5deg); }
+  60% { transform: scale(1.12) rotate(-3deg); }
+  80% { transform: scale(1.12) rotate(1.5deg); }
+  100% { transform: scale(1.12) rotate(0deg); }
+}
+.mdr-gift-shadow { animation: mdrShadowPulse 3s ease-in-out infinite; }
+.mdr-gift-card { transform-origin: 50% 92%; animation: mdrFloatMain 3s ease-in-out infinite; }
+.mdr-gift-back { animation: mdrFloat 5.2s ease-in-out 0.5s infinite; }
+.mdr-gift:hover .mdr-gift-card,
+.mdr-gift:focus-visible .mdr-gift-card {
+  animation: mdrFloatMain 3s ease-in-out infinite, mdrGrow 0.35s ease forwards,
+    mdrWave 1.1s ease-in-out 0.35s infinite;
+}
+.mdr-gift-hint { color: #511419; animation: mdrHint 2s ease-in-out infinite; }
+.mdr-sparkle { animation: mdrSparkle 2s ease-in-out infinite; }
+.mdr-sparkle-2 { animation: mdrSparkle 2s ease-in-out 0.6s infinite; }
+.mdr-sparkle-3 { animation: mdrSparkle 2s ease-in-out 1.2s infinite; }
+.mdr-sparkle-4 { animation: mdrSparkle 2s ease-in-out 1.7s infinite; }
+
+/* ---------- Song Hỷ Xanh layout (src/components/songhy) ---------- */
+@keyframes shyAmbientRise {
+  0% { transform: translateY(6vh) translateX(0) rotate(0deg); opacity: 0; }
+  12% { opacity: 0.45; }
+  55% { transform: translateY(-42vh) translateX(var(--sway, 20px)) rotate(8deg); opacity: 0.55; }
+  92% { opacity: 0.35; }
+  100% { transform: translateY(-92vh) translateX(0) rotate(0deg); opacity: 0; }
+}
+@keyframes shyBob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+.shy-gift-bob { animation: shyBob 3s ease-in-out infinite; }
+.shy-gift-box { transform-origin: 50% 92%; transition: transform 0.35s; }
+.shy-gift:hover .shy-gift-box,
+.shy-gift:focus-visible .shy-gift-box {
+  animation: mdrGrow 0.35s ease forwards, mdrWave 1.1s ease-in-out 0.35s infinite;
 }

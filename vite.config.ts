@@ -33,6 +33,10 @@ export default defineConfig(({ command }) => {
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      // Local API (npm run server) — keeps MongoDB credentials out of the browser bundle
+      proxy: {
+        '/api': `http://localhost:${process.env.API_PORT || 3001}`,
+      },
     },
   };
 });

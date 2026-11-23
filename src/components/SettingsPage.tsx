@@ -13,6 +13,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import { WeddingConfig } from '../types/wedding';
+import { ApiError, verifyAdminPasscode } from '../lib/api';
+import { THEMES, resolveTheme } from '../data/themes';
 
 function resizeImageFileToDataUrl(file: File, maxDim = 640): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -52,12 +54,20 @@ function resizeImageFileToDataUrl(file: File, maxDim = 640): Promise<string> {
 interface SettingsPageProps {
   config: WeddingConfig;
   onBackToInvitation: () => void;
-  onSave: (nextConfig: WeddingConfig) => void;
-  onReset: () => void;
+  /** Rejects with a user-facing message when the save fails. */
+  onSave: (nextConfig: WeddingConfig, passcode: string) => Promise<void>;
+  onReset: (passcode: string) => Promise<void>;
+  /** True when the invitation is stored in MongoDB via the API. */
+  serverMode: boolean;
+  configMode: 'checking' | 'online' | 'offline';
 }
 
 const PASSCODE_HASH = '6e92eeca51cdcb24d00be55afe60719607ca9f2fb5d718e3bd905590353ecacb';
-const UNLOCK_STORAGE_KEY = 'wedding_customizer_unlocked_v1';
+// Holds the passcode for this tab only, so saves can be authorised by the server
+const PASSCODE_STORAGE_KEY = 'wedding_admin_passcode_v1';
+
+const errorText = (err: unknown) =>
+  err instanceof Error && err.message ? err.message : 'Không lưu được, vui lòng thử lại.';
 
 async function sha256Hex(value: string): Promise<string> {
   const bytes = new TextEncoder().encode(value);
@@ -72,16 +82,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   onBackToInvitation,
   onSave,
   onReset,
+  serverMode,
+  configMode,
 }) => {
   const [draft, setDraft] = useState<WeddingConfig>(config);
   const [savedNotice, setSavedNotice] = useState(false);
-  const [unlocked, setUnlocked] = useState<boolean>(() => {
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [passcode, setPasscode] = useState<string>(() => {
     try {
-      return window.sessionStorage.getItem(UNLOCK_STORAGE_KEY) === 'true';
+      return window.sessionStorage.getItem(PASSCODE_STORAGE_KEY) || '';
     } catch {
-      return false;
+      return '';
     }
   });
+  const unlocked = Boolean(passcode);
   const [passInput, setPassInput] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -97,33 +112,54 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     setChecking(true);
     setAuthError('');
     try {
-      const hashed = await sha256Hex(passInput);
-      if (hashed === PASSCODE_HASH) {
-        setUnlocked(true);
-        setPassInput('');
-        try {
-          window.sessionStorage.setItem(UNLOCK_STORAGE_KEY, 'true');
-        } catch {
-          // Ignore storage errors
-        }
-      } else {
+      if (serverMode) {
+        // The server is the real gate: it checks the passcode on every save
+        await verifyAdminPasscode(passInput);
+      } else if ((await sha256Hex(passInput)) !== PASSCODE_HASH) {
         setAuthError('Mật khẩu không chính xác. Vui lòng thử lại.');
+        return;
       }
-    } catch {
-      setAuthError('Không thể xác thực mật khẩu trên trình duyệt này.');
+      setPasscode(passInput);
+      setPassInput('');
+      try {
+        window.sessionStorage.setItem(PASSCODE_STORAGE_KEY, passInput);
+      } catch {
+        // Ignore storage errors
+      }
+    } catch (err) {
+      setAuthError(
+        err instanceof ApiError && err.status === 401
+          ? 'Mật khẩu không chính xác. Vui lòng thử lại.'
+          : errorText(err)
+      );
     } finally {
       setChecking(false);
     }
   };
 
   const handleLock = () => {
-    setUnlocked(false);
+    setPasscode('');
     setPassInput('');
     setAuthError('');
     try {
-      window.sessionStorage.removeItem(UNLOCK_STORAGE_KEY);
+      window.sessionStorage.removeItem(PASSCODE_STORAGE_KEY);
     } catch {
       // Ignore
+    }
+  };
+
+  const handleReset = async () => {
+    if (saving) return;
+    if (!window.confirm('Khôi phục toàn bộ nội dung thiệp về mặc định ban đầu?')) return;
+    setSaving(true);
+    setSaveError('');
+    try {
+      await onReset(passcode);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) handleLock();
+      setSaveError(errorText(err));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -164,16 +200,26 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
     const monogram = `${draft.brideName.trim().charAt(0) || 'M'} & ${
       draft.groomName.trim().charAt(0) || 'V'
     }`;
-    onSave({ ...draft, monogram });
-    setSavedNotice(true);
-    window.setTimeout(() => {
-      setSavedNotice(false);
-    }, 2600);
+    setSaving(true);
+    setSaveError('');
+    try {
+      await onSave({ ...draft, monogram }, passcode);
+      setSavedNotice(true);
+      window.setTimeout(() => {
+        setSavedNotice(false);
+      }, 2600);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) handleLock();
+      setSaveError(errorText(err));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -300,6 +346,99 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               <h1 className="font-serif text-3xl sm:text-4xl font-medium text-[#1C1917] mt-1">
                 Chỉnh Sửa Thông Tin Thiệp
               </h1>
+              <p className="mt-2 text-xs text-[#6B655D]">
+                {!serverMode
+                  ? 'Chưa kết nối máy chủ — thay đổi chỉ lưu trên trình duyệt này.'
+                  : configMode === 'online'
+                    ? 'Đang chỉnh nội dung lưu trên MongoDB — bấm Lưu để cập nhật cho mọi khách.'
+                    : configMode === 'checking'
+                      ? 'Đang tải nội dung từ máy chủ…'
+                      : 'Không tải được nội dung từ máy chủ — đang hiển thị bản lưu tạm. Lưu sẽ ghi đè bản trên máy chủ.'}
+              </p>
+            </div>
+
+            {/* Theme */}
+            <div className="space-y-4">
+              <div>
+                <h2 className="font-serif text-2xl font-medium text-[#1C1917]">Giao Diện Thiệp</h2>
+                <p className="text-xs text-[#6B655D] mt-1">
+                  Chọn một theme rồi bấm Lưu — mọi khách mở thiệp sẽ thấy giao diện mới.
+                </p>
+              </div>
+              <div
+                role="radiogroup"
+                aria-label="Chọn theme"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+              >
+                {THEMES.map((theme) => {
+                  const selected = resolveTheme(draft.theme).id === theme.id;
+                  const p = theme.preview;
+                  return (
+                    <button
+                      key={theme.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setDraft({ ...draft, theme: theme.id })}
+                      className={`text-left rounded-lg border-2 overflow-hidden bg-white transition-all cursor-pointer ${
+                        selected
+                          ? 'border-[#88292F] shadow-md'
+                          : 'border-[#E5DDD0] hover:border-[#D8CBB8]'
+                      }`}
+                    >
+                      {/* Miniature invitation preview */}
+                      <div
+                        className="relative h-28 px-4 flex flex-col items-center justify-center gap-1.5"
+                        style={{ backgroundColor: p.bg }}
+                      >
+                        <span
+                          className="text-[8px] tracking-[0.25em] uppercase"
+                          style={{ color: p.accent2 }}
+                        >
+                          Thiệp mời thành hôn
+                        </span>
+                        <span
+                          className={`text-lg leading-none ${
+                            theme.style === 'tech' ? 'font-sans font-semibold' : 'font-serif'
+                          }`}
+                          style={{ color: theme.style === 'tech' ? p.text : p.accent }}
+                        >
+                          {draft.brideName} &amp; {draft.groomName}
+                        </span>
+                        <span
+                          className="mt-1 px-3 py-1 rounded text-[8px] tracking-[0.15em] uppercase font-medium"
+                          style={{
+                            background:
+                              theme.style === 'tech'
+                                ? `linear-gradient(120deg, ${p.accent}, ${p.accent2})`
+                                : p.accent,
+                            color: theme.mode === 'dark' ? '#0B0B0B' : '#FFFFFF',
+                          }}
+                        >
+                          Xác nhận
+                        </span>
+                        {selected && (
+                          <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#88292F] text-white flex items-center justify-center">
+                            <Check className="w-3 h-3" />
+                          </span>
+                        )}
+                      </div>
+                      <div className="px-4 py-3 border-t border-[#E5DDD0]">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-medium text-[#1C1917]">{theme.name}</span>
+                          <span className="shrink-0 text-[10px] tracking-wide uppercase px-1.5 py-0.5 rounded bg-[#F4EFE6] text-[#6B655D]">
+                            {theme.mode === 'dark' ? 'Tối' : 'Sáng'}
+                            {theme.style === 'tech' ? ' · Tech' : ''}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#6B655D] mt-1 leading-relaxed">
+                          {theme.description}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Couple Names */}
@@ -630,10 +769,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               </div>
             </div>
 
+            {saveError && (
+              <p
+                role="alert"
+                className="flex items-start gap-2 px-4 py-3 bg-[#88292F]/[0.07] border border-[#88292F]/25 rounded-sm text-sm text-[#88292F]"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>{saveError}</span>
+              </p>
+            )}
+
             <div className="pt-5 border-t border-[#E5DDD0] flex flex-wrap items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={onReset}
+                onClick={handleReset}
+                disabled={saving}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium text-[#6B655D] hover:text-[#88292F] cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -650,12 +800,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#88292F] text-[#FBF9F5] text-xs font-medium rounded-sm hover:bg-[#702025] transition-colors cursor-pointer"
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#88292F] text-[#FBF9F5] text-xs font-medium rounded-sm hover:bg-[#702025] transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-wait"
                 >
-                  {savedNotice ? (
+                  {saving ? (
+                    <span>Đang lưu…</span>
+                  ) : savedNotice ? (
                     <>
                       <Check className="w-4 h-4" />
-                      <span>Đã lưu thay đổi</span>
+                      <span>{serverMode ? 'Đã lưu lên máy chủ' : 'Đã lưu thay đổi'}</span>
                     </>
                   ) : (
                     <span>Lưu Thiệp Cưới</span>

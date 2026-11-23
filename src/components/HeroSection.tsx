@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { ArrowDown } from 'lucide-react';
 import { WeddingConfig } from '../types/wedding';
 import { ResilientImage } from './ResilientImage';
-import { EASE, Ornament } from './Ornament';
+import { EASE, Ornament, ThemeEmblem } from './Ornament';
 
 interface HeroSectionProps {
   config: WeddingConfig;
@@ -73,8 +73,8 @@ function getDateParts(iso: string): DateParts | null {
 const CountdownUnit: React.FC<{ value: number; label: string }> = ({ value, label }) => {
   const formatted = String(value).padStart(2, '0');
   return (
-    <div className="flex flex-col items-center justify-center px-2 py-1 sm:border-l sm:first:border-l-0 border-[#EBD9B4]/15">
-      <div className="relative h-12 sm:h-16 flex items-center justify-center overflow-hidden">
+    <div className="flex flex-col items-center justify-center px-2 py-1 sm:border-l sm:first:border-l-0 border-champagne/15">
+      <div className="relative h-11 sm:h-14 flex items-center justify-center overflow-hidden">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span
             key={formatted}
@@ -82,13 +82,13 @@ const CountdownUnit: React.FC<{ value: number; label: string }> = ({ value, labe
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -18, opacity: 0 }}
             transition={{ duration: 0.35, ease: EASE }}
-            className="font-serif text-[2.75rem] sm:text-6xl font-medium text-[#FBF3E4] tabular-nums leading-none"
+            className="font-serif text-4xl sm:text-5xl font-medium text-cream tabular-nums leading-none"
           >
             {formatted}
           </motion.span>
         </AnimatePresence>
       </div>
-      <span className="mt-2 text-[10px] sm:text-[11px] tracking-[0.3em] uppercase text-[#C9A66B]">
+      <span className="mt-2 text-[10px] sm:text-[11px] tracking-[0.3em] uppercase text-gold">
         {label}
       </span>
     </div>
@@ -129,6 +129,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, onReplayIntro 
           {/* Invitation copy */}
           <div className="contents lg:block lg:col-span-6 text-center lg:text-left">
             <div className="order-1">
+            <ThemeEmblem className="mb-5 mx-auto lg:mx-0" />
             <motion.p {...rise(0)} className="eyebrow eyebrow-rule lg:hidden">
               Thiệp Mời Thành Hôn
             </motion.p>
@@ -138,17 +139,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, onReplayIntro 
 
             <motion.h1
               {...rise(0.1)}
-              className="font-script text-[#88292F] mt-6 whitespace-nowrap text-[clamp(3.25rem,14vw,5.5rem)] lg:text-[clamp(4.25rem,6.2vw,5.75rem)]"
+              className="font-script text-seal mt-6 whitespace-nowrap text-[clamp(2.25rem,10.5vw,3.5rem)] lg:text-[clamp(3.25rem,4.6vw,4.25rem)]"
             >
               <span className="block pt-2">{config.brideName}</span>
-              <span className="flex items-center justify-center lg:justify-start gap-4 lg:pl-20 -my-1">
-                <span className="h-px w-10 bg-[#A8834E]/50" aria-hidden="true" />
-                <span className="font-serif italic text-[0.42em] text-[#A8834E] leading-none">
+              <span className="flex items-center justify-center lg:justify-start gap-4 lg:pl-12 -my-1">
+                <span className="h-px w-10 bg-bronze/50" aria-hidden="true" />
+                <span className="font-serif text-[0.5em] text-bronze leading-none">
                   &amp;
                 </span>
-                <span className="h-px w-10 bg-[#A8834E]/50" aria-hidden="true" />
+                <span className="h-px w-10 bg-bronze/50" aria-hidden="true" />
               </span>
-              <span className="block lg:pl-24">{config.groomName}</span>
+              <span className="block lg:pl-16">{config.groomName}</span>
             </motion.h1>
             </div>
 
@@ -159,35 +160,35 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, onReplayIntro 
               {dateParts ? (
                 <div className="inline-flex flex-col items-center">
                   <div className="flex items-center gap-4 sm:gap-7 whitespace-nowrap">
-                    <span className="w-24 sm:w-32 py-2.5 border-y border-[#A8834E]/45 text-center text-[11px] sm:text-xs tracking-[0.2em] sm:tracking-[0.26em] uppercase text-[#2B1F1C]">
+                    <span className="w-24 sm:w-32 py-2.5 border-y border-bronze/45 text-center text-[11px] sm:text-xs tracking-[0.2em] sm:tracking-[0.26em] uppercase text-ink">
                       {dateParts.weekday}
                     </span>
-                    <span className="font-serif text-6xl sm:text-7xl font-medium text-[#88292F] leading-none tabular-nums">
+                    <span className="font-serif text-5xl sm:text-6xl font-medium text-seal leading-none tabular-nums">
                       {dateParts.day}
                     </span>
-                    <span className="w-24 sm:w-32 py-2.5 border-y border-[#A8834E]/45 text-center text-[11px] sm:text-xs tracking-[0.2em] sm:tracking-[0.26em] uppercase text-[#2B1F1C]">
+                    <span className="w-24 sm:w-32 py-2.5 border-y border-bronze/45 text-center text-[11px] sm:text-xs tracking-[0.2em] sm:tracking-[0.26em] uppercase text-ink">
                       Tháng {dateParts.month}
                     </span>
                   </div>
-                  <p className="mt-4 text-[11px] sm:text-xs tracking-[0.24em] sm:tracking-[0.3em] uppercase text-[#2B1F1C] whitespace-nowrap">
+                  <p className="mt-4 text-[11px] sm:text-xs tracking-[0.24em] sm:tracking-[0.3em] uppercase text-ink whitespace-nowrap">
                     Năm {dateParts.year}
-                    <span className="mx-3 text-[#A8834E]" aria-hidden="true">
+                    <span className="mx-3 text-bronze" aria-hidden="true">
                       ◆
                     </span>
                     Lúc {dateParts.time}
                   </p>
-                  <p className="mt-2 font-serif italic text-[15px] sm:text-base text-[#75675E] whitespace-nowrap">
+                  <p className="mt-2 font-serif italic text-[15px] sm:text-base text-muted whitespace-nowrap">
                     ({config.lunarDisplayDate})
                   </p>
                 </div>
               ) : (
-                <p className="font-serif text-2xl text-[#88292F]">{config.displayDate}</p>
+                <p className="font-serif text-2xl text-seal">{config.displayDate}</p>
               )}
             </motion.div>
 
             <motion.p
               {...rise(0.32)}
-              className="mt-8 text-[15px] leading-[1.85] text-[#75675E] max-w-xl mx-auto lg:mx-0 text-balance"
+              className="mt-8 text-[15px] leading-[1.85] text-muted max-w-xl mx-auto lg:mx-0 text-balance"
             >
               {config.heroQuote}
             </motion.p>
@@ -218,7 +219,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, onReplayIntro 
               aria-hidden="true"
               className="arch-outline absolute -inset-3 sm:-inset-4 translate-x-2 translate-y-2 sm:translate-x-3 sm:translate-y-3"
             />
-            <div className="arch relative aspect-[4/5] bg-[#E9DFCE] shadow-[var(--shadow-lift)]">
+            <div className="hero-photo-stage relative">
+            <div className="arch relative aspect-[4/5] bg-sand shadow-[var(--shadow-lift)]">
               <motion.div style={{ scale: imageScale }} className="w-full h-full">
                 <ResilientImage
                   src={config.heroImage}
@@ -233,16 +235,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, onReplayIntro 
                 className="absolute inset-0 ring-1 ring-inset ring-white/25 arch pointer-events-none"
               />
             </div>
+            {/* Envelope pocket the photo sits in — only shown by the "minimal-burgundy" theme */}
+            <div aria-hidden="true" className="theme-envelope">
+              <span className="theme-envelope-seal">♥</span>
+            </div>
+            </div>
 
             {/* Wax-seal badge */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.6, rotate: -20 }}
-              animate={{ opacity: 1, scale: 1, rotate: -8 }}
+              initial={{ opacity: 0, scale: 0.6, rotate: 20 }}
+              animate={{ opacity: 1, scale: 1, rotate: 8 }}
               transition={{ duration: 0.9, delay: 0.7, ease: EASE }}
-              className="absolute -bottom-5 -left-2 sm:-left-8 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#A03A42] via-[#88292F] to-[#5E1820] shadow-[0_18px_30px_-12px_rgba(94,24,32,0.7)] flex items-center justify-center"
+              className="theme-seal-badge absolute -top-7 -right-3 sm:-top-9 sm:-right-8 z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-seal-light via-seal to-seal-deep shadow-[0_18px_30px_-12px_color-mix(in_srgb,var(--color-seal-deep)_70%,transparent)] flex items-center justify-center"
             >
-              <div className="w-[82%] h-[82%] rounded-full border border-[#EBD9B4]/45 flex flex-col items-center justify-center text-[#FBF3E4]">
-                <span className="text-[6px] sm:text-[7px] tracking-[0.2em] uppercase whitespace-nowrap text-[#EBD9B4]">
+              <div className="w-[82%] h-[82%] rounded-full border border-on-seal/45 flex flex-col items-center justify-center text-on-seal">
+                <span className="text-[6px] sm:text-[7px] tracking-[0.2em] uppercase whitespace-nowrap text-on-seal/85">
                   Save the date
                 </span>
                 <span className="font-serif italic text-xl sm:text-2xl leading-tight mt-0.5">
@@ -251,8 +258,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, onReplayIntro 
               </div>
             </motion.div>
 
-            <p className="mt-8 sm:mt-9 text-center font-serif italic text-[15px] sm:text-lg text-[#75675E] whitespace-nowrap">
-              {config.brideFullName} <span className="text-[#A8834E] not-italic">♡</span>{' '}
+            <p className="mt-8 sm:mt-9 text-center font-serif italic text-[15px] sm:text-lg text-muted whitespace-nowrap">
+              {config.brideFullName} <span className="text-bronze not-italic">♡</span>{' '}
               {config.groomFullName}
             </p>
           </motion.div>
@@ -263,21 +270,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, onReplayIntro 
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.5, ease: EASE }}
-          className="wine-surface relative mt-12 lg:mt-20 rounded-[1.75rem] px-5 py-8 sm:px-12 sm:py-10 shadow-[var(--shadow-lift)] overflow-hidden"
+          className="wine-surface relative mt-12 lg:mt-20 rounded-lg px-5 py-8 sm:px-12 sm:py-10 shadow-[var(--shadow-lift)] overflow-hidden"
         >
           <div
             aria-hidden="true"
-            className="absolute inset-2.5 rounded-[1.25rem] border border-[#EBD9B4]/18 pointer-events-none"
+            className="absolute inset-2.5 rounded-lg border border-champagne/18 pointer-events-none"
           />
           {timeLeft.isPast ? (
-            <p className="relative font-serif italic text-2xl sm:text-3xl text-[#FBF3E4] text-center text-balance">
+            <p className="relative font-serif italic text-2xl sm:text-3xl text-cream text-center text-balance">
               Ngày trọng đại đã chính thức diễn ra — Cảm ơn bạn đã đồng hành!
             </p>
           ) : (
             <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-4 text-center lg:text-left">
-                <Ornament className="text-[#C9A66B] mx-auto lg:mx-0" />
-                <p className="mt-3 font-serif italic text-2xl sm:text-[1.75rem] text-[#FBF3E4] leading-snug">
+                <Ornament className="text-gold mx-auto lg:mx-0" />
+                <p className="mt-3 font-serif italic text-xl sm:text-2xl text-cream leading-snug">
                   Cùng đếm ngược
                   <br />
                   đến ngày chung đôi

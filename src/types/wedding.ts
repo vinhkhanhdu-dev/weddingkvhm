@@ -99,4 +99,6 @@ export interface WeddingConfig {
     swatches: Array<{ name: string; hex: string }>;
   };
   bankAccounts: BankAccount[];
+  /** Theme id from src/data/themes.ts; missing means the classic theme. */
+  theme?: string;
 }

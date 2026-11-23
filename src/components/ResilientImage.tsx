@@ -48,12 +48,12 @@ export const ResilientImage: React.FC<ResilientImageProps> = ({
   if (hasError || !resolvedSrc) {
     return (
       <div
-        className={`flex flex-col items-center justify-center bg-gradient-to-br from-[#F4EFE6] via-[#EAE2D3] to-[#DFD4C0] text-[#6B655D] p-6 text-center ${className}`}
+        className={`flex flex-col items-center justify-center bg-gradient-to-br from-linen via-sand to-sand text-muted p-6 text-center ${className}`}
         role="img"
         aria-label={alt}
       >
         <svg
-          className="w-10 h-10 mb-3 text-[#9A7B4F]/60"
+          className="w-10 h-10 mb-3 text-bronze/60"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -61,7 +61,7 @@ export const ResilientImage: React.FC<ResilientImageProps> = ({
         >
           <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.5-7 10-7 10Z" />
         </svg>
-        <span className="font-serif italic text-base text-[#1C1917]/75">
+        <span className="font-serif italic text-base text-ink/75">
           {fallbackTitle || alt}
         </span>
       </div>

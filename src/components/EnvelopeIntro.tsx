@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { resolveAssetUrl } from './ResilientImage';
+import { ThemeEmblem } from './Ornament';
 
 interface EnvelopeIntroProps {
   groomName: string;
@@ -41,7 +42,7 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
           initial={{ opacity: 1 }}
           animate={{ opacity: stage === 'opening' ? 1 : 1 }}
           exit={{ opacity: 0, transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#F4EDE1] paper-texture px-4 overflow-hidden"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-linen paper-texture px-4 overflow-hidden"
         >
           {/* Subtle paper grain overlay */}
           <div
@@ -65,11 +66,12 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
               transition={{ duration: 0.3, ease: 'easeOut' }}
               className="flex flex-col items-center"
             >
+              <ThemeEmblem className="mb-5" />
               <p className="eyebrow eyebrow-rule text-center">Trân Trọng Kính Mời</p>
-              <p className="font-script text-[clamp(1.75rem,8.2vw,3.25rem)] whitespace-nowrap text-[#88292F] mt-4 pt-2 text-center">
-                {brideName} <span className="text-[#A8834E]">&amp;</span> {groomName}
+              <p className="font-script text-[clamp(1.5rem,7vw,2.5rem)] whitespace-nowrap text-seal mt-4 pt-2 text-center">
+                {brideName} <span className="font-serif text-[0.8em] text-bronze">&amp;</span> {groomName}
               </p>
-              <p className="mt-2 mb-9 text-[11px] tracking-[0.3em] uppercase text-[#75675E] text-center">
+              <p className="mt-2 mb-9 text-[11px] tracking-[0.3em] uppercase text-muted text-center">
                 {displayDate}
               </p>
             </motion.div>
@@ -90,7 +92,7 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
               }}
             >
               {/* Back Envelope Body */}
-              <div className="absolute inset-0 bg-[#EAE2D3] border border-[#D8CBB8] rounded-md shadow-[0_40px_70px_-30px_rgba(59,15,21,0.5)]" />
+              <div className="absolute inset-0 bg-[#EAE2D3] border border-[#D8CBB8] rounded-lg shadow-[0_40px_70px_-30px_color-mix(in_srgb,var(--color-shadow)_50%,transparent)]" />
 
               {/* Rising Inner Invitation Card */}
               <motion.div
@@ -192,10 +194,10 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
                     ? { duration: 0.35, ease: 'easeOut' }
                     : { duration: 2.8, repeat: Infinity, ease: 'easeInOut' }
                 }
-                className="absolute left-1/2 top-[53%] -translate-x-1/2 -translate-y-1/2 z-40 w-[4.5rem] h-[4.5rem] rounded-full bg-gradient-to-br from-[#A03A42] via-[#88292F] to-[#5E1820] shadow-[0_12px_22px_-8px_rgba(94,24,32,0.75)] flex items-center justify-center"
+                className="absolute left-1/2 top-[53%] -translate-x-1/2 -translate-y-1/2 z-40 w-[4.5rem] h-[4.5rem] rounded-full bg-gradient-to-br from-seal-light via-seal to-seal-deep shadow-[0_12px_22px_-8px_color-mix(in_srgb,var(--color-seal-deep)_75%,transparent)] flex items-center justify-center"
               >
-                <div className="w-12 h-12 rounded-full border border-[#FBF9F5]/35 flex items-center justify-center">
-                  <span className="font-serif italic text-sm text-[#FBF9F5] tracking-wider">
+                <div className="w-12 h-12 rounded-full border border-on-seal/35 flex items-center justify-center">
+                  <span className="font-serif italic text-sm text-on-seal tracking-wider">
                     {monogram}
                   </span>
                 </div>
@@ -213,7 +215,7 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
                   setStage('done');
                   onOpenComplete();
                 }}
-                className="text-xs text-[#6B655D] hover:text-[#1C1917] underline underline-offset-4 cursor-pointer"
+                className="text-xs text-muted hover:text-ink underline underline-offset-4 cursor-pointer"
               >
                 Vào thẳng trang thiệp
               </button>

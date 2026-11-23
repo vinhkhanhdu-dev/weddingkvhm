@@ -74,7 +74,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
                   type="button"
                   onClick={() => setSelectedIndex(index)}
                   aria-label={`Xem ảnh ${photo.caption}`}
-                  className="group relative block aspect-[3/4] w-full overflow-hidden rounded-2xl bg-[#2A0B10] cursor-pointer ring-1 ring-[#EBD9B4]/15 focus-visible:outline-[#EBD9B4]"
+                  className="group relative block aspect-[3/4] w-full overflow-hidden rounded-lg bg-wine-deep cursor-pointer ring-1 ring-champagne/15 focus-visible:outline-champagne"
                 >
                   <ResilientImage
                     src={photo.src}
@@ -82,16 +82,16 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
                     className="w-full h-full object-cover object-[50%_18%] group-hover:scale-[1.06] transition-transform duration-[1200ms] ease-out"
                     fallbackTitle={photo.caption}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1F0709]/90 via-[#1F0709]/30 via-40% to-transparent to-65%" />
-                  <span className="absolute top-3 right-3 w-9 h-9 rounded-full bg-[#FBF3E4]/90 text-[#3B0F15] flex items-center justify-center opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-t from-wine-deep/90 via-wine-deep/30 via-40% to-transparent to-65%" />
+                  <span className="absolute top-3 right-3 w-9 h-9 rounded-lg bg-cream/90 text-wine flex items-center justify-center opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300">
                     <Expand className="w-4 h-4" />
                   </span>
                   <figcaption className="absolute inset-x-0 bottom-0 p-3.5 sm:p-5 text-left">
-                    <span className="block text-[10px] tracking-[0.22em] uppercase text-[#EBD9B4] tabular-nums">
+                    <span className="block text-[10px] tracking-[0.22em] uppercase text-champagne tabular-nums">
                       {figNum}
                       <span className="hidden sm:inline"> · {photo.location}</span>
                     </span>
-                    <span className="block font-serif italic text-[15px] sm:text-xl text-[#FBF3E4] mt-1 leading-snug text-balance">
+                    <span className="block font-serif italic text-[15px] sm:text-xl text-cream mt-1 leading-snug text-balance">
                       {photo.caption}
                     </span>
                   </figcaption>
@@ -111,22 +111,22 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             onClick={() => setSelectedIndex(null)}
-            className="fixed inset-0 z-50 bg-[#150406]/95 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-8"
+            className="fixed inset-0 z-50 bg-wine-deep/95 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-8"
             role="dialog"
             aria-modal="true"
             aria-label={activePhoto.caption}
           >
-            <div className="w-full max-w-5xl flex items-center justify-between text-[#FBF3E4] mb-4">
-              <div className="text-[11px] tracking-[0.24em] uppercase text-[#C9A66B] tabular-nums">
+            <div className="w-full max-w-5xl flex items-center justify-between text-cream mb-4">
+              <div className="text-[11px] tracking-[0.24em] uppercase text-gold tabular-nums">
                 {String(selectedIndex + 1).padStart(2, '0')} /{' '}
                 {String(photos.length).padStart(2, '0')}
-                <span className="hidden sm:inline text-[#FBF3E4]/60"> · {activePhoto.location}</span>
+                <span className="hidden sm:inline text-cream/60"> · {activePhoto.location}</span>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedIndex(null)}
                 aria-label="Đóng trình xem ảnh"
-                className="w-10 h-10 rounded-full border border-[#FBF3E4]/25 flex items-center justify-center text-[#FBF3E4]/85 hover:bg-[#FBF3E4] hover:text-[#3B0F15] transition-colors cursor-pointer"
+                className="w-10 h-10 rounded-lg border border-cream/25 flex items-center justify-center text-cream/85 hover:bg-cream hover:text-wine transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -142,7 +142,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
                   setSelectedIndex((selectedIndex - 1 + photos.length) % photos.length)
                 }
                 aria-label="Ảnh trước"
-                className="absolute left-0 z-10 hidden sm:flex w-11 h-11 rounded-full bg-[#150406]/60 border border-[#FBF3E4]/25 text-[#FBF3E4] flex items-center justify-center hover:bg-[#FBF3E4] hover:text-[#3B0F15] transition-colors cursor-pointer"
+                className="absolute left-0 z-10 hidden sm:flex w-11 h-11 rounded-lg bg-wine-deep/60 border border-cream/25 text-cream flex items-center justify-center hover:bg-cream hover:text-wine transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -162,7 +162,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
                     setSelectedIndex((selectedIndex - 1 + photos.length) % photos.length);
                   }
                 }}
-                className="max-h-[70svh] sm:max-h-[74vh] overflow-hidden rounded-2xl shadow-2xl cursor-grab active:cursor-grabbing [&_img]:pointer-events-none"
+                className="max-h-[70svh] sm:max-h-[74vh] overflow-hidden rounded-lg shadow-2xl cursor-grab active:cursor-grabbing [&_img]:pointer-events-none"
               >
                 <ResilientImage
                   src={activePhoto.src}
@@ -177,16 +177,16 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ photos }) => {
                 type="button"
                 onClick={() => setSelectedIndex((selectedIndex + 1) % photos.length)}
                 aria-label="Ảnh tiếp theo"
-                className="absolute right-0 z-10 hidden sm:flex w-11 h-11 rounded-full bg-[#150406]/60 border border-[#FBF3E4]/25 text-[#FBF3E4] flex items-center justify-center hover:bg-[#FBF3E4] hover:text-[#3B0F15] transition-colors cursor-pointer"
+                className="absolute right-0 z-10 hidden sm:flex w-11 h-11 rounded-lg bg-wine-deep/60 border border-cream/25 text-cream flex items-center justify-center hover:bg-cream hover:text-wine transition-colors cursor-pointer"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="mt-5 font-serif italic text-xl text-[#FBF3E4] text-center">
+            <p className="mt-5 font-serif italic text-xl text-cream text-center">
               {activePhoto.caption}
             </p>
-            <p className="sm:hidden mt-2 text-[10px] tracking-[0.24em] uppercase text-[#FBF3E4]/55">
+            <p className="sm:hidden mt-2 text-[10px] tracking-[0.24em] uppercase text-cream/55">
               ← Vuốt để xem ảnh khác →
             </p>
           </motion.div>

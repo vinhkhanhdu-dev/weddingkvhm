@@ -14,7 +14,10 @@ interface Petal {
   tone: string;
 }
 
-export const PetalCanvas: React.FC<{ active?: boolean }> = ({ active = true }) => {
+export const PetalCanvas: React.FC<{ active?: boolean; theme?: string }> = ({
+  active = true,
+  theme,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -40,12 +43,17 @@ export const PetalCanvas: React.FC<{ active?: boolean }> = ({ active = true }) =
     };
     window.addEventListener('resize', handleResize);
 
-    const tones = [
+    // Petal colours follow the active theme (--petal-1..4 in index.css)
+    const rootStyle = window.getComputedStyle(document.documentElement);
+    const fallbackTones = [
       'rgba(244, 224, 220, 0.72)',
       'rgba(255, 250, 244, 0.85)',
       'rgba(218, 185, 148, 0.45)',
       'rgba(196, 124, 128, 0.35)',
     ];
+    const tones = fallbackTones.map(
+      (fallback, i) => rootStyle.getPropertyValue(`--petal-${i + 1}`).trim() || fallback
+    );
 
     const petalCount = Math.min(26, Math.max(14, Math.floor(width / 65)));
     const petals: Petal[] = Array.from({ length: petalCount }, () => ({
@@ -115,7 +123,7 @@ export const PetalCanvas: React.FC<{ active?: boolean }> = ({ active = true }) =
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
     };
-  }, [active]);
+  }, [active, theme]);
 
   return (
     <canvas
