@@ -157,6 +157,12 @@ const asyncRoute =
 
 const app = express();
 app.set('trust proxy', 1);
+// Invitation data changes from the settings page at any time — never let browsers or
+// proxies keep a copy of API responses.
+app.use('/api', (_req, res, next) => {
+  res.set('Cache-Control', 'no-store, max-age=0');
+  next();
+});
 const smallJson = express.json({ limit: '16kb' });
 // Settings may carry uploaded photos/QR codes as data URLs, so that one route gets a larger limit
 const configJson = express.json({ limit: '8mb' });
@@ -184,7 +190,6 @@ app.get(
   asyncRoute(async (_req, res) => {
     const doc = await settings.findOne({ _id: CONFIG_DOC_ID });
     if (!doc) throw new HttpError(404, 'Chưa có dữ liệu thiệp.');
-    res.set('Cache-Control', 'no-cache');
     res.json({ config: doc.config, updatedAt: doc.updatedAt.toISOString() });
   })
 );

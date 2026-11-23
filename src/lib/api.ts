@@ -30,6 +30,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     const res = await fetch(`${API_BASE}${path}`, {
       ...init,
+      // Never answer from the browser's HTTP cache — always ask the server
+      cache: 'no-store',
       signal: controller.signal,
       headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) },
     });

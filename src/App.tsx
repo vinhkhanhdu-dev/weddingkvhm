@@ -99,11 +99,28 @@ function normalizeConfig(stored: WeddingConfig): WeddingConfig {
 }
 
 export default function App() {
-  // Local copy paints instantly; the MongoDB version replaces it once loaded
+  // With the API configured, nothing is shown until MongoDB answers; the browser copy is
+  // only an offline fallback (it would otherwise flash stale content or let the settings
+  // page overwrite newer data with an old copy).
   const [config, setConfig] = useState<WeddingConfig>(readWeddingConfig);
   const [configMode, setConfigMode] = useState<'checking' | 'online' | 'offline'>(
     isApiConfigured ? 'checking' : 'offline'
   );
+  // Bumped whenever the visitor comes back to the tab, so data is re-read from MongoDB
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (!isApiConfigured) return;
+    const refresh = () => {
+      if (document.visibilityState === 'visible') setRefreshKey((k) => k + 1);
+    };
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('online', refresh);
+    return () => {
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('online', refresh);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isApiConfigured) return;
@@ -121,12 +138,13 @@ export default function App() {
         }
       })
       .catch(() => {
-        if (!cancelled) setConfigMode('offline');
+        // A failed background refresh keeps the data already loaded from MongoDB
+        if (!cancelled) setConfigMode((m) => (m === 'online' ? m : 'offline'));
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
   const [wishes, setWishes] = useState<WishEntry[]>(() =>
     readStorage<WishEntry[]>(STORAGE_KEYS.WISHES, DEFAULT_WISHES)
   );
@@ -150,12 +168,12 @@ export default function App() {
         setDataMode('online');
       })
       .catch(() => {
-        if (!cancelled) setDataMode('offline');
+        if (!cancelled) setDataMode((m) => (m === 'online' ? m : 'offline'));
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   const [introOpen, setIntroOpen] = useState(true);
   const [introKey, setIntroKey] = useState(0);
@@ -307,6 +325,19 @@ export default function App() {
     setIntroKey((k) => k + 1);
     setIntroOpen(true);
   };
+
+  // Wait for the latest invitation from MongoDB (also protects the settings page from
+  // editing — and then saving — an outdated copy)
+  if (configMode === 'checking') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#FBF8F2] text-[#75675E]">
+        <span className="w-9 h-9 rounded-full border-2 border-[#88292F]/20 border-t-[#88292F] animate-spin" aria-hidden="true" />
+        <p className="text-sm tracking-wide" role="status">
+          Đang tải thiệp mời…
+        </p>
+      </div>
+    );
+  }
 
   if (isSettings) {
     return (
