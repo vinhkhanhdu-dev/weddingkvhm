@@ -4,7 +4,7 @@ import { RsvpSubmission, WeddingConfig, WishEntry } from '../types/wedding';
  * API base URL.
  * - Dev: '' → same origin, Vite proxies /api to the local Express server.
  * - Production: set VITE_API_URL at build time (e.g. https://wedding-api.example.com).
- *   When unset in production the API is disabled and the app falls back to localStorage.
+ *   There is no offline copy: when unset in production the page shows a configuration error.
  */
 const configured = import.meta.env.VITE_API_URL as string | undefined;
 const API_BASE: string | null =

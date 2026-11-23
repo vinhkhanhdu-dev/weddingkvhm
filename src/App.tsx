@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { MotionConfig } from 'motion/react';
-import { DEFAULT_WEDDING_CONFIG, DEFAULT_WISHES } from './data/defaultWedding';
+import { DEFAULT_WEDDING_CONFIG } from './data/defaultWedding';
 import { RsvpSubmission, WeddingConfig, WishEntry } from './types/wedding';
 import { EnvelopeIntro } from './components/EnvelopeIntro';
 import { PetalCanvas } from './components/PetalCanvas';
@@ -50,11 +50,21 @@ function getInvitationHomeUrl(): string {
   return base ? `${base}/` : '/';
 }
 
-const STORAGE_KEYS = {
-  CONFIG: 'personal_wedding_config_v4',
-  WISHES: 'personal_wedding_wishes_v4',
-  RSVPS: 'personal_wedding_rsvps_v4',
-};
+// Copies older versions of the app kept in the visitor's browser — removed on startup,
+// the invitation is now always read from the API.
+const LEGACY_STORAGE_KEYS = [
+  'personal_wedding_config_v4',
+  'personal_wedding_wishes_v4',
+  'personal_wedding_rsvps_v4',
+];
+
+function purgeLegacyStorage() {
+  try {
+    for (const key of LEGACY_STORAGE_KEYS) window.localStorage.removeItem(key);
+  } catch {
+    // Storage may be blocked (private mode) — nothing to clean then
+  }
+}
 
 const LEGACY_ASSET_MAP: Record<string, string> = {
   '/assets/aistudio/in60x90__2___1__65fbed59.jpg': '/assets/web/hero-couple.jpg',
@@ -74,20 +84,6 @@ function mapAsset(url: string): string {
   return LEGACY_ASSET_MAP[url] || url;
 }
 
-function readStorage<T>(key: string, fallback: T): T {
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-function readWeddingConfig(): WeddingConfig {
-  return normalizeConfig(readStorage<WeddingConfig>(STORAGE_KEYS.CONFIG, DEFAULT_WEDDING_CONFIG));
-}
-
 function normalizeConfig(stored: WeddingConfig): WeddingConfig {
   return {
     ...stored,
@@ -98,16 +94,21 @@ function normalizeConfig(stored: WeddingConfig): WeddingConfig {
   };
 }
 
+const MISSING_API_MESSAGE = 'Trang chưa được cấu hình địa chỉ máy chủ (VITE_API_URL).';
+
 export default function App() {
-  // With the API configured, nothing is shown until MongoDB answers; the browser copy is
-  // only an offline fallback (it would otherwise flash stale content or let the settings
-  // page overwrite newer data with an old copy).
-  const [config, setConfig] = useState<WeddingConfig>(readWeddingConfig);
-  const [configMode, setConfigMode] = useState<'checking' | 'online' | 'offline'>(
-    isApiConfigured ? 'checking' : 'offline'
+  // The invitation, wishes and RSVP totals come only from the API (MongoDB) — nothing is
+  // kept in the browser, so every visit shows the latest saved data.
+  const [config, setConfig] = useState<WeddingConfig | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(
+    isApiConfigured ? null : MISSING_API_MESSAGE
   );
-  // Bumped whenever the visitor comes back to the tab, so data is re-read from MongoDB
+  const [wishes, setWishes] = useState<WishEntry[]>([]);
+  const [attendingGuests, setAttendingGuests] = useState<number | null>(null);
+  // Bumped whenever the visitor comes back to the tab, so data is re-read from the API
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(purgeLegacyStorage, []);
 
   useEffect(() => {
     if (!isApiConfigured) return;
@@ -128,47 +129,27 @@ export default function App() {
     fetchConfig()
       .then((remote) => {
         if (cancelled) return;
-        const next = normalizeConfig(remote);
-        setConfig(next);
-        setConfigMode('online');
-        try {
-          window.localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(next));
-        } catch {
-          // Ignore storage quota errors
-        }
+        setConfig(normalizeConfig(remote));
+        setLoadError(null);
       })
-      .catch(() => {
-        // A failed background refresh keeps the data already loaded from MongoDB
-        if (!cancelled) setConfigMode((m) => (m === 'online' ? m : 'offline'));
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        // A failed background refresh keeps the invitation already on screen
+        setConfig((current) => {
+          if (!current) {
+            setLoadError(err instanceof Error ? err.message : 'Không tải được thiệp mời.');
+          }
+          return current;
+        });
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshKey]);
-  const [wishes, setWishes] = useState<WishEntry[]>(() =>
-    readStorage<WishEntry[]>(STORAGE_KEYS.WISHES, DEFAULT_WISHES)
-  );
-  const [rsvps, setRsvps] = useState<RsvpSubmission[]>(() =>
-    readStorage<RsvpSubmission[]>(STORAGE_KEYS.RSVPS, [])
-  );
-  // 'online' = wishes/RSVPs live in MongoDB via the API; 'offline' = browser-only fallback
-  const [dataMode, setDataMode] = useState<'checking' | 'online' | 'offline'>(
-    isApiConfigured ? 'checking' : 'offline'
-  );
-  const [remoteAttendingGuests, setRemoteAttendingGuests] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!isApiConfigured) return;
-    let cancelled = false;
     Promise.all([fetchWishes(), fetchRsvpSummary()])
       .then(([remoteWishes, summary]) => {
         if (cancelled) return;
         setWishes(remoteWishes);
-        setRemoteAttendingGuests(summary.attendingGuests);
-        setDataMode('online');
+        setAttendingGuests(summary.attendingGuests);
       })
       .catch(() => {
-        if (!cancelled) setDataMode((m) => (m === 'online' ? m : 'offline'));
+        // Guestbook stays as last loaded; the invitation itself still shows
       });
     return () => {
       cancelled = true;
@@ -210,7 +191,7 @@ export default function App() {
   const [previewThemeId] = useState(() =>
     typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('theme')
   );
-  const theme = resolveTheme(previewThemeId || config.theme);
+  const theme = resolveTheme(previewThemeId || config?.theme);
   useLayoutEffect(() => {
     // The settings page keeps its own neutral look
     document.documentElement.dataset.theme = isSettings ? 'classic' : theme.id;
@@ -220,121 +201,84 @@ export default function App() {
   }, [theme.id, theme.preview.bg, isSettings]);
 
   useEffect(() => {
-    document.title = `Thiệp Mời Thành Hôn — ${config.brideName} & ${config.groomName}`;
-  }, [config.brideName, config.groomName]);
+    if (config) {
+      document.title = `Thiệp Mời Thành Hôn — ${config.brideName} & ${config.groomName}`;
+    }
+  }, [config]);
 
-  // With the API configured, MongoDB is the source of truth: a failed save rejects so the
-  // settings page can show the error instead of pretending it was published.
+  // A failed save rejects so the settings page can show the error
   const handleSaveConfig = async (nextConfig: WeddingConfig, passcode: string) => {
-    if (isApiConfigured) {
-      await saveConfig(nextConfig, passcode);
-      setConfigMode('online');
-    }
+    await saveConfig(nextConfig, passcode);
     setConfig(nextConfig);
-    try {
-      window.localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(nextConfig));
-    } catch {
-      // Ignore storage quota errors
-    }
   };
 
   const handleResetConfig = async (passcode: string) => {
-    if (isApiConfigured) {
-      await saveConfig(DEFAULT_WEDDING_CONFIG, passcode);
-    }
+    await saveConfig(DEFAULT_WEDDING_CONFIG, passcode);
     setConfig(DEFAULT_WEDDING_CONFIG);
-    try {
-      window.localStorage.removeItem(STORAGE_KEYS.CONFIG);
-    } catch {
-      // Ignore
-    }
   };
 
-  const persistLocal = (key: string, value: unknown) => {
-    try {
-      window.localStorage.setItem(key, JSON.stringify(value));
-    } catch {
-      // Ignore storage quota errors
-    }
-  };
-
-  // In online mode a failed save rejects, so the form can ask the guest to retry
-  // instead of silently keeping the wish in their own browser only.
+  // A failed send rejects, so the form can ask the guest to retry
   const handleAddWish = async (wish: Omit<WishEntry, 'id' | 'createdAt' | 'hearts'>) => {
-    if (dataMode === 'online') {
-      const saved = await createWish(wish);
-      setWishes((prev) => [saved, ...prev]);
-      launchFireworks('celebration');
-      return;
-    }
-    const next: WishEntry = {
-      ...wish,
-      id: `wish-${Date.now()}`,
-      createdAt: 'Vừa xong',
-      hearts: 1,
-    };
-    const updated = [next, ...wishes];
-    setWishes(updated);
+    const saved = await createWish(wish);
+    setWishes((prev) => [saved, ...prev]);
     launchFireworks('celebration');
-    persistLocal(STORAGE_KEYS.WISHES, updated);
   };
 
   const handleHeartWish = (id: string) => {
     const bump = (delta: number) => (list: WishEntry[]) =>
       list.map((w) => (w.id === id ? { ...w, hearts: w.hearts + delta } : w));
-
-    if (dataMode === 'online') {
-      setWishes(bump(1));
-      heartWish(id)
-        .then((hearts) =>
-          setWishes((prev) => prev.map((w) => (w.id === id ? { ...w, hearts } : w)))
-        )
-        .catch(() => setWishes(bump(-1)));
-      return;
-    }
-    const updated = bump(1)(wishes);
-    setWishes(updated);
-    persistLocal(STORAGE_KEYS.WISHES, updated);
+    setWishes(bump(1));
+    heartWish(id)
+      .then((hearts) =>
+        setWishes((prev) => prev.map((w) => (w.id === id ? { ...w, hearts } : w)))
+      )
+      .catch(() => setWishes(bump(-1)));
   };
 
   const handleSubmitRsvp = async (rsvp: Omit<RsvpSubmission, 'id' | 'submittedAt'>) => {
-    if (dataMode === 'online') {
-      await createRsvp(rsvp);
-      setRemoteAttendingGuests((prev) =>
-        rsvp.attending === 'yes' ? (prev ?? 0) + rsvp.guestCount : prev
-      );
-      return;
-    }
-    const next: RsvpSubmission = {
-      ...rsvp,
-      id: `rsvp-${Date.now()}`,
-      submittedAt: new Date().toLocaleDateString('vi-VN'),
-    };
-    const updated = [next, ...rsvps];
-    setRsvps(updated);
-    persistLocal(STORAGE_KEYS.RSVPS, updated);
+    await createRsvp(rsvp);
+    setAttendingGuests((prev) =>
+      rsvp.attending === 'yes' ? (prev ?? 0) + rsvp.guestCount : prev
+    );
   };
-
-  const localAttendingGuests = rsvps
-    .filter((r) => r.attending === 'yes')
-    .reduce((acc, r) => acc + r.guestCount, 0);
-  const attendingGuests =
-    dataMode === 'online' ? remoteAttendingGuests : rsvps.length > 0 ? localAttendingGuests : null;
 
   const handleReplayIntro = () => {
     setIntroKey((k) => k + 1);
     setIntroOpen(true);
   };
 
-  // Wait for the latest invitation from MongoDB (also protects the settings page from
-  // editing — and then saving — an outdated copy)
-  if (configMode === 'checking') {
+  if (!config) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#FBF8F2] text-[#75675E]">
-        <span className="w-9 h-9 rounded-full border-2 border-[#88292F]/20 border-t-[#88292F] animate-spin" aria-hidden="true" />
-        <p className="text-sm tracking-wide" role="status">
-          Đang tải thiệp mời…
-        </p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center bg-[#FBF8F2] text-[#75675E]">
+        {loadError ? (
+          <>
+            <p className="text-sm max-w-xs" role="alert">
+              {loadError}
+            </p>
+            {isApiConfigured && (
+              <button
+                type="button"
+                className="px-5 py-2 rounded-full bg-[#88292F] text-white text-sm"
+                onClick={() => {
+                  setLoadError(null);
+                  setRefreshKey((k) => k + 1);
+                }}
+              >
+                Thử lại
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <span
+              className="w-9 h-9 rounded-full border-2 border-[#88292F]/20 border-t-[#88292F] animate-spin"
+              aria-hidden="true"
+            />
+            <p className="text-sm tracking-wide" role="status">
+              Đang tải thiệp mời…
+            </p>
+          </>
+        )}
       </div>
     );
   }
@@ -347,8 +291,8 @@ export default function App() {
           onBackToInvitation={handleBackToInvitation}
           onSave={handleSaveConfig}
           onReset={handleResetConfig}
-          serverMode={isApiConfigured}
-          configMode={configMode}
+          serverMode
+          configMode="online"
         />
       </MotionConfig>
     );
