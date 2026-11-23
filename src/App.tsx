@@ -21,6 +21,24 @@ const STORAGE_KEYS = {
   RSVPS: 'personal_wedding_rsvps_v4',
 };
 
+const LEGACY_ASSET_MAP: Record<string, string> = {
+  '/assets/aistudio/in60x90__2___1__65fbed59.jpg': '/assets/web/hero-couple.jpg',
+  '/assets/aistudio/SAN_3205_0d713cd4.JPG': '/assets/web/san-3205.jpg',
+  '/assets/aistudio/SAN_2959_e125ebef.JPG': '/assets/web/san-2959.jpg',
+  '/assets/aistudio/SAN_3159_1de2d97d.JPG': '/assets/web/san-3159.jpg',
+  '/assets/aistudio/SAN_3334_d475fda9.JPG': '/assets/web/san-3334.jpg',
+  '/assets/aistudio/SAN_3017_1e5c3a6f.JPG': '/assets/web/san-3017.jpg',
+  '/assets/aistudio/SAN_2935_063b0890.JPG': '/assets/web/san-2935.jpg',
+  '/assets/aistudio/SAN_2965_1f4062d5.JPG': '/assets/web/san-2965.jpg',
+  '/assets/aistudio/SAN_3222_47b68d47.JPG': '/assets/web/san-3222.jpg',
+  '/assets/aistudio/SAN_3362_2f2a0e73.JPG': '/assets/web/san-3362.jpg',
+  '/assets/aistudio/SAN_3383_d7bdf350.JPG': '/assets/web/san-3383.jpg',
+};
+
+function mapAsset(url: string): string {
+  return LEGACY_ASSET_MAP[url] || url;
+}
+
 function readStorage<T>(key: string, fallback: T): T {
   try {
     const raw = window.localStorage.getItem(key);
@@ -31,10 +49,19 @@ function readStorage<T>(key: string, fallback: T): T {
   }
 }
 
+function readWeddingConfig(): WeddingConfig {
+  const stored = readStorage<WeddingConfig>(STORAGE_KEYS.CONFIG, DEFAULT_WEDDING_CONFIG);
+  return {
+    ...stored,
+    heroImage: mapAsset(stored.heroImage),
+    venueImage: mapAsset(stored.venueImage),
+    storyChapters: stored.storyChapters.map((c) => ({ ...c, image: mapAsset(c.image) })),
+    gallery: stored.gallery.map((g) => ({ ...g, src: mapAsset(g.src) })),
+  };
+}
+
 export default function App() {
-  const [config, setConfig] = useState<WeddingConfig>(() =>
-    readStorage<WeddingConfig>(STORAGE_KEYS.CONFIG, DEFAULT_WEDDING_CONFIG)
-  );
+  const [config, setConfig] = useState<WeddingConfig>(readWeddingConfig);
   const [wishes, setWishes] = useState<WishEntry[]>(() =>
     readStorage<WishEntry[]>(STORAGE_KEYS.WISHES, DEFAULT_WISHES)
   );

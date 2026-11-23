@@ -102,7 +102,7 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
                   </span>
                   {brideName === 'Hoàng Mỹ' && groomName === 'Khánh Vinh' ? (
                     <img
-                      src={resolveAssetUrl('/assets/aistudio/Burgundy_Save_the_Date_Wedding_Design_b14a3b90.png')}
+                      src={resolveAssetUrl('/assets/web/save-the-date-envelope.png')}
                       alt="Hoàng Mỹ & Khánh Vinh — Save The Date 29/11/2026"
                       className="w-full max-w-[300px] h-auto object-contain my-1"
                     />

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export function resolveAssetUrl(src: string): string {
   if (!src) return src;
   if (
     src.startsWith('data:') ||
+    src.startsWith('blob:') ||
     src.startsWith('http://') ||
     src.startsWith('https://')
   ) {
@@ -11,6 +12,9 @@ export function resolveAssetUrl(src: string): string {
   }
   const base = import.meta.env.BASE_URL || '/';
   if (src.startsWith('/')) {
+    if (base === './' || base === '.') {
+      return `.${src}`;
+    }
     return `${base.replace(/\/$/, '')}${src}`;
   }
   return src;
@@ -31,9 +35,15 @@ export const ResilientImage: React.FC<ResilientImageProps> = ({
   fallbackTitle,
   loading = 'lazy',
 }) => {
+  const resolvedSrc = resolveAssetUrl(src);
+  const imgRef = useRef<HTMLImageElement | null>(null);
   const [hasError, setHasError] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const resolvedSrc = resolveAssetUrl(src);
+
+  useEffect(() => {
+    setHasError(false);
+    setLoaded(Boolean(imgRef.current?.complete && imgRef.current.naturalWidth > 0));
+  }, [resolvedSrc]);
 
   if (hasError || !resolvedSrc) {
     return (
@@ -60,15 +70,15 @@ export const ResilientImage: React.FC<ResilientImageProps> = ({
 
   return (
     <img
+      ref={imgRef}
       src={resolvedSrc}
       alt={alt}
       loading={loading}
       decoding="async"
-      referrerPolicy="no-referrer"
       onLoad={() => setLoaded(true)}
       onError={() => setHasError(true)}
       className={`${className} transition-opacity duration-500 ${
-        loaded ? 'opacity-100' : 'opacity-85'
+        loaded ? 'opacity-100' : 'opacity-90'
       }`}
     />
   );

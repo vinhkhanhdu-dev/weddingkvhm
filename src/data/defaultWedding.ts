@@ -12,8 +12,8 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
   city: 'Long Hoà, Vĩnh Long',
   heroQuote:
     'Trân trọng báo tin Lễ Thành Hôn của hai con chúng tôi và kính mời Quý gia đình tới dự buổi tiệc rượu chung vui tại Tư gia — Số 124, Ấp Xẻo Ranh, Xã Long Hoà, Tỉnh Vĩnh Long.',
-  heroImage: '/assets/aistudio/in60x90__2___1__65fbed59.jpg',
-  venueImage: '/assets/aistudio/SAN_3205_0d713cd4.JPG',
+  heroImage: '/assets/web/hero-couple.jpg',
+  venueImage: '/assets/web/san-3205.jpg',
   groomParents: {
     father: '',
     mother: 'Bà Thái Thị Cẩm Hồng',
@@ -36,7 +36,7 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
       location: 'Sài Gòn',
       description:
         'Giữa nhịp sống hối hả của thành phố, hai ánh nhìn tình cờ chạm nhau và mở ra những cuộc trò chuyện kéo dài bất tận, giản dị mà ấm áp lạ thường.',
-      image: '/assets/aistudio/SAN_2959_e125ebef.JPG',
+      image: '/assets/web/san-2959.jpg',
     },
     {
       id: 'chapter-2',
@@ -45,7 +45,7 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
       location: 'Bên Nhau Mỗi Ngày',
       description:
         'Cùng nhau đi qua những ngày bình yên lẫn thử thách, học cách lắng nghe, thấu hiểu và trân trọng từng khoảnh khắc nhỏ bé bên hiên nhà đầy nắng.',
-      image: '/assets/aistudio/SAN_3159_1de2d97d.JPG',
+      image: '/assets/web/san-3159.jpg',
     },
     {
       id: 'chapter-3',
@@ -54,7 +54,7 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
       location: 'Khu Vườn Xanh',
       description:
         'Khoảnh khắc cùng nắm tay đọc lên từng dòng cảm xúc chân thành trong cuốn sổ thề nguyện, hứa sẽ luôn dịu dàng và đồng hành suốt quãng đời còn lại.',
-      image: '/assets/aistudio/SAN_3334_d475fda9.JPG',
+      image: '/assets/web/san-3334.jpg',
     },
     {
       id: 'chapter-4',
@@ -63,7 +63,7 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
       location: 'Long Hoà, Vĩnh Long',
       description:
         'Khi tấm voan trắng khẽ buông, mọi lời hứa hẹn hóa thành hiện thực — ngày hai gia đình sum vầy chúc phúc cho hành trình hạnh phúc trọn đời.',
-      image: '/assets/aistudio/SAN_3017_1e5c3a6f.JPG',
+      image: '/assets/web/san-3017.jpg',
     },
   ],
   ceremonies: [
@@ -154,56 +154,56 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
   gallery: [
     {
       id: 'g-1',
-      src: '/assets/aistudio/SAN_3017_1e5c3a6f.JPG',
+      src: '/assets/web/san-3017.jpg',
       caption: 'Dưới Tấm Voan Cưới',
       location: 'Khoảnh Khắc Thiêng Liêng',
       aspect: 'portrait',
     },
     {
       id: 'g-2',
-      src: '/assets/aistudio/SAN_2935_063b0890.JPG',
+      src: '/assets/web/san-2935.jpg',
       caption: 'Sắc Trắng Tinh Khôi',
       location: 'Studio',
       aspect: 'portrait',
     },
     {
       id: 'g-3',
-      src: '/assets/aistudio/SAN_2965_1f4062d5.JPG',
+      src: '/assets/web/san-2965.jpg',
       caption: 'Ánh Nhìn Trao Nhau',
       location: 'Studio',
       aspect: 'portrait',
     },
     {
       id: 'g-4',
-      src: '/assets/aistudio/SAN_3159_1de2d97d.JPG',
+      src: '/assets/web/san-3159.jpg',
       caption: 'Góc Hiên Nắng Chiều',
       location: 'Ngoại Cảnh',
       aspect: 'portrait',
     },
     {
       id: 'g-5',
-      src: '/assets/aistudio/SAN_3205_0d713cd4.JPG',
+      src: '/assets/web/san-3205.jpg',
       caption: 'Nắm Tay Thật Chặt',
       location: 'Kiến Trúc Vòm',
       aspect: 'portrait',
     },
     {
       id: 'g-6',
-      src: '/assets/aistudio/SAN_3222_47b68d47.JPG',
+      src: '/assets/web/san-3222.jpg',
       caption: 'Niềm Vui Rạng Rỡ',
       location: 'Ngoại Cảnh',
       aspect: 'portrait',
     },
     {
       id: 'g-7',
-      src: '/assets/aistudio/SAN_3362_2f2a0e73.JPG',
+      src: '/assets/web/san-3362.jpg',
       caption: 'Lời Thề Nguyện Dưới Trời Xanh',
       location: 'Sân Vườn',
       aspect: 'portrait',
     },
     {
       id: 'g-8',
-      src: '/assets/aistudio/SAN_3383_d7bdf350.JPG',
+      src: '/assets/web/san-3383.jpg',
       caption: 'Tung Bay Khăn Voan',
       location: 'Sân Vườn',
       aspect: 'portrait',

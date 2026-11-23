@@ -119,7 +119,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 {config.brideName}
                 <span className="flex items-center gap-3 italic text-[#88292F] font-normal my-1.5">
                   <img
-                    src={resolveAssetUrl('/assets/aistudio/Deep_Red_Heart_Outline__1__8e6057b1.png')}
+                    src={resolveAssetUrl('/assets/web/heart-outline.png')}
                     alt=""
                     aria-hidden="true"
                     className="w-8 h-8 sm:w-10 sm:h-10 object-contain shrink-0"

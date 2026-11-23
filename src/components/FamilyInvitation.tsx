@@ -15,7 +15,7 @@ export const FamilyInvitation: React.FC<FamilyInvitationProps> = ({ config }) =>
         <div className="flex justify-center mb-6">
           {config.brideName === 'Hoàng Mỹ' && config.groomName === 'Khánh Vinh' ? (
             <motion.img
-              src={resolveAssetUrl('/assets/aistudio/Save_the_Date_Calligraphy_Design_90b8180c.png')}
+              src={resolveAssetUrl('/assets/web/save-the-date-crest.png')}
               alt="Save The Date — Hoàng Mỹ & Khánh Vinh — 29/11/2026"
               initial={{ opacity: 0, y: 12, scale: 0.96 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
