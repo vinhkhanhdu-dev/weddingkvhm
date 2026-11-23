@@ -41,6 +41,7 @@ export interface BankAccount {
   bankName: string;
   accountNumber: string;
   branch: string;
+  qrImage?: string;
 }
 
 export interface WishEntry {

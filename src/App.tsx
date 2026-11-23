@@ -13,7 +13,27 @@ import { LoveStoryTimeline } from './components/LoveStoryTimeline';
 import { CeremonySchedule } from './components/CeremonySchedule';
 import { GallerySection } from './components/GallerySection';
 import { RsvpAndWishes } from './components/RsvpAndWishes';
-import { CustomizeDrawer } from './components/CustomizeDrawer';
+import { SettingsPage } from './components/SettingsPage';
+
+function isSettingsRoute(): boolean {
+  if (typeof window === 'undefined') return false;
+  const path = window.location.pathname.replace(/\/+$/, '');
+  const hash = window.location.hash.replace(/\/+$/, '');
+  return path.endsWith('/settings') || hash === '#/settings';
+}
+
+function getInvitationHomeUrl(): string {
+  if (typeof window === 'undefined') return '/';
+  if (window.location.hash.replace(/\/+$/, '') === '#/settings') {
+    return `${window.location.pathname}${window.location.search}`;
+  }
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+  const cleanedPath = window.location.pathname.replace(/\/settings\/?$/, '');
+  if (cleanedPath && cleanedPath !== window.location.pathname) {
+    return `${cleanedPath}/`.replace(/\/+$/, '/');
+  }
+  return base ? `${base}/` : '/';
+}
 
 const STORAGE_KEYS = {
   CONFIG: 'personal_wedding_config_v4',
@@ -71,8 +91,26 @@ export default function App() {
 
   const [introOpen, setIntroOpen] = useState(true);
   const [introKey, setIntroKey] = useState(0);
-  const [customizerOpen, setCustomizerOpen] = useState(false);
+  const [isSettings, setIsSettings] = useState<boolean>(isSettingsRoute);
   const [fireworkTrigger, setFireworkTrigger] = useState<FireworkTrigger | null>(null);
+
+  useEffect(() => {
+    const syncRoute = () => setIsSettings(isSettingsRoute());
+    window.addEventListener('popstate', syncRoute);
+    window.addEventListener('hashchange', syncRoute);
+    return () => {
+      window.removeEventListener('popstate', syncRoute);
+      window.removeEventListener('hashchange', syncRoute);
+    };
+  }, []);
+
+  const handleBackToInvitation = () => {
+    const target = getInvitationHomeUrl();
+    window.history.pushState({}, '', target);
+    setIsSettings(false);
+    setIntroOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const launchFireworks = (variant: 'grand' | 'celebration') => {
     setFireworkTrigger((prev) => ({
@@ -152,6 +190,19 @@ export default function App() {
     setIntroOpen(true);
   };
 
+  if (isSettings) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <SettingsPage
+          config={config}
+          onBackToInvitation={handleBackToInvitation}
+          onSave={handleSaveConfig}
+          onReset={handleResetConfig}
+        />
+      </MotionConfig>
+    );
+  }
+
   return (
     <MotionConfig reducedMotion="user">
       <div className="min-h-screen bg-[#FBF9F5] text-[#1C1917] relative overflow-x-clip">
@@ -177,7 +228,6 @@ export default function App() {
         <main>
           <HeroSection
             config={config}
-            onOpenCustomizer={() => setCustomizerOpen(true)}
             onReplayIntro={handleReplayIntro}
           />
 
@@ -218,27 +268,9 @@ export default function App() {
               >
                 Mở lại phong bì
               </button>
-              <span aria-hidden="true" className="text-[#D8CBB8]">
-                ·
-              </span>
-              <button
-                type="button"
-                onClick={() => setCustomizerOpen(true)}
-                className="text-[#88292F] hover:underline underline-offset-4 font-medium cursor-pointer"
-              >
-                Tùy chỉnh thiệp cá nhân
-              </button>
             </div>
           </div>
         </footer>
-
-        <CustomizeDrawer
-          open={customizerOpen}
-          config={config}
-          onClose={() => setCustomizerOpen(false)}
-          onSave={handleSaveConfig}
-          onReset={handleResetConfig}
-        />
       </div>
     </MotionConfig>
   );

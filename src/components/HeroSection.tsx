@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
-import { SlidersHorizontal, ArrowDownRight } from 'lucide-react';
+import { ArrowDownRight } from 'lucide-react';
 import { WeddingConfig } from '../types/wedding';
 import { ResilientImage, resolveAssetUrl } from './ResilientImage';
 
 interface HeroSectionProps {
   config: WeddingConfig;
-  onOpenCustomizer: () => void;
   onReplayIntro: () => void;
 }
 
@@ -62,7 +61,6 @@ const CountdownUnit: React.FC<{ value: number; label: string }> = ({ value, labe
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   config,
-  onOpenCustomizer,
   onReplayIntro,
 }) => {
   const heroRef = useRef<HTMLElement | null>(null);
@@ -151,15 +149,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <span>Xác Nhận Tham Dự</span>
                 <ArrowDownRight className="w-4 h-4" />
               </a>
-
-              <button
-                type="button"
-                onClick={onOpenCustomizer}
-                className="inline-flex items-center gap-2 px-5 py-3 bg-transparent border border-[#D8CBB8] text-[#1C1917] text-sm font-medium rounded-sm hover:border-[#1C1917] transition-colors cursor-pointer whitespace-nowrap shrink-0"
-              >
-                <SlidersHorizontal className="w-4 h-4 text-[#88292F]" />
-                <span>Tùy Chỉnh Thiệp Của Bạn</span>
-              </button>
 
               <button
                 type="button"

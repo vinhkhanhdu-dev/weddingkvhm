@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: '#cau-chuyen', label: 'Câu Chuyện' },
   { href: '#lich-trinh', label: 'Hôn Lễ' },
   { href: '#khoanh-khac', label: 'Album Ảnh' },
+  { href: '#mung-cuoi', label: 'Mừng Cưới' },
   { href: '#loi-chuc', label: 'Lưu Bút' },
 ];
 
