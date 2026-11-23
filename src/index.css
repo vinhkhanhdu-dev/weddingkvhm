@@ -2,26 +2,251 @@
 
 @theme {
   --font-serif: "Cormorant Garamond", Georgia, Cambria, "Times New Roman", serif;
-  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --color-paper: #FBF9F5;
-  --color-linen: #F4EFE6;
-  --color-ink: #1C1917;
-  --color-muted: #6B655D;
-  --color-hairline: #E5DDD0;
+  --font-sans: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-script: "Great Vibes", "Cormorant Garamond", cursive;
+
+  --color-paper: #FBF8F2;
+  --color-linen: #F4EDE1;
+  --color-sand: #E9DFCE;
+  --color-ink: #2B1F1C;
+  --color-muted: #75675E;
+  --color-hairline: #E4D9C8;
   --color-seal: #88292F;
-  --color-bronze: #9A7B4F;
+  --color-seal-deep: #5E1820;
+  --color-wine: #3B0F15;
+  --color-bronze: #A8834E;
+  --color-gold: #C9A66B;
+  --color-champagne: #EBD9B4;
+
+  --shadow-soft: 0 1px 2px rgba(59, 15, 21, 0.04), 0 12px 32px -12px rgba(59, 15, 21, 0.14);
+  --shadow-lift: 0 2px 4px rgba(59, 15, 21, 0.05), 0 28px 60px -24px rgba(59, 15, 21, 0.28);
 }
 
 @layer base {
   html {
     font-family: var(--font-sans);
-    background-color: #FBF9F5;
-    color: #1C1917;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    font-weight: 400;
+    letter-spacing: 0.002em;
   }
 
   h1, h2, h3, .font-editorial {
     font-family: var(--font-serif);
   }
+
+  a, button, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-seal);
+    outline-offset: 3px;
+  }
+}
+
+/* ---------- Design system primitives ---------- */
+@layer components {
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-bronze);
+}
+
+.eyebrow-rule::before,
+.eyebrow-rule::after {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.eyebrow-rule-start::before {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.display-title {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(2.125rem, 4.6vw, 3.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.012em;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+/* Keep section titles on one line on phones */
+@media (max-width: 639px) {
+  .display-title {
+    font-size: clamp(1.5rem, 7.4vw, 2.125rem);
+  }
+
+  .eyebrow {
+    letter-spacing: 0.22em;
+    white-space: nowrap;
+  }
+}
+
+.display-title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--color-seal);
+}
+
+.font-script {
+  font-family: var(--font-script);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+    box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #96323A 0%, var(--color-seal) 55%, #762129 100%);
+  color: #FFF9F0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 10px 24px -10px rgba(136, 41, 47, 0.65);
+}
+
+.btn-primary:hover {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 16px 30px -10px rgba(136, 41, 47, 0.75);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  border: 1px solid rgba(136, 41, 47, 0.35);
+  color: var(--color-seal);
+  background: transparent;
+}
+
+.btn-outline:hover {
+  background: var(--color-seal);
+  border-color: var(--color-seal);
+  color: #FFF9F0;
+}
+
+.btn-dark {
+  background: var(--color-ink);
+  color: #FFF9F0;
+}
+
+.btn-dark:hover {
+  background: #45332E;
+}
+
+.btn-gold {
+  border: 1px solid rgba(201, 166, 107, 0.6);
+  color: var(--color-champagne);
+}
+
+.btn-gold:hover {
+  background: var(--color-champagne);
+  border-color: var(--color-champagne);
+  color: var(--color-wine);
+}
+
+.btn-sm {
+  padding: 0.65rem 1.25rem;
+  font-size: 0.6875rem;
+}
+
+.card {
+  background: #FFFDF9;
+  border: 1px solid var(--color-hairline);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.field {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: #FFFDF9;
+  border: 1px solid var(--color-hairline);
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-ink);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field::placeholder {
+  color: #A99C90;
+}
+
+.field:focus {
+  outline: none;
+  border-color: var(--color-seal);
+  box-shadow: 0 0 0 4px rgba(136, 41, 47, 0.1);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* Arch photo frame — echoes the arched architecture in the wedding photos */
+.arch {
+  border-radius: 999px 999px 1.25rem 1.25rem;
+  overflow: hidden;
+}
+
+.arch-outline {
+  border-radius: 999px 999px 1.5rem 1.5rem;
+  border: 1px solid rgba(168, 131, 78, 0.55);
+}
+
+/* Soft paper texture built from layered gradients */
+.paper-texture {
+  background-image:
+    radial-gradient(60rem 36rem at 12% -10%, rgba(201, 166, 107, 0.16), transparent 60%),
+    radial-gradient(48rem 32rem at 100% 10%, rgba(136, 41, 47, 0.07), transparent 62%);
+}
+
+.wine-surface {
+  background-color: var(--color-wine);
+  background-image:
+    radial-gradient(50rem 30rem at 15% 0%, rgba(136, 41, 47, 0.75), transparent 65%),
+    radial-gradient(44rem 28rem at 95% 100%, rgba(120, 36, 44, 0.6), transparent 60%);
+}
+
 }
 
 .tabular-nums {
@@ -30,6 +255,27 @@
 
 .text-balance {
   text-wrap: balance;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* iOS zooms the page when a focused input is under 16px */
+@media (max-width: 639px) {
+  .field {
+    font-size: 1rem;
+    padding: 0.85rem 1rem;
+  }
+}
+
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-sand) transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {

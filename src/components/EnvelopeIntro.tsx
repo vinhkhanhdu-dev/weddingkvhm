@@ -41,7 +41,7 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
           initial={{ opacity: 1 }}
           animate={{ opacity: stage === 'opening' ? 1 : 1 }}
           exit={{ opacity: 0, transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#F4EFE6] px-4 overflow-hidden"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#F4EDE1] paper-texture px-4 overflow-hidden"
         >
           {/* Subtle paper grain overlay */}
           <div
@@ -59,9 +59,20 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-full max-w-[460px] flex flex-col items-center"
           >
-            <p className="text-xs tracking-[0.22em] uppercase text-[#6B655D] mb-6 text-center">
-              Trân Trọng Kính Mời · {displayDate}
-            </p>
+            {/* Heading steps aside while the flap and card rise into its space */}
+            <motion.div
+              animate={stage === 'opening' ? { opacity: 0, y: -16 } : { opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="flex flex-col items-center"
+            >
+              <p className="eyebrow eyebrow-rule text-center">Trân Trọng Kính Mời</p>
+              <p className="font-script text-[clamp(1.75rem,8.2vw,3.25rem)] whitespace-nowrap text-[#88292F] mt-4 pt-2 text-center">
+                {brideName} <span className="text-[#A8834E]">&amp;</span> {groomName}
+              </p>
+              <p className="mt-2 mb-9 text-[11px] tracking-[0.3em] uppercase text-[#75675E] text-center">
+                {displayDate}
+              </p>
+            </motion.div>
 
             {/* 3D Envelope Wrapper */}
             <div
@@ -79,14 +90,14 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
               }}
             >
               {/* Back Envelope Body */}
-              <div className="absolute inset-0 bg-[#EAE2D3] border border-[#D8CBB8] rounded-sm shadow-xl" />
+              <div className="absolute inset-0 bg-[#EAE2D3] border border-[#D8CBB8] rounded-md shadow-[0_40px_70px_-30px_rgba(59,15,21,0.5)]" />
 
               {/* Rising Inner Invitation Card */}
               <motion.div
                 initial={{ y: 0, opacity: 0.95 }}
                 animate={
                   stage === 'opening'
-                    ? { y: -115, opacity: 1, scale: 1.03 }
+                    ? { y: '-46%', opacity: 1, scale: 1.03 }
                     : { y: 0, opacity: 0.95, scale: 1 }
                 }
                 transition={{
@@ -151,9 +162,15 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
 
               {/* Top Flap (3D Rotating) */}
               <motion.div
-                initial={{ rotateX: 0 }}
-                animate={stage === 'opening' ? { rotateX: -175 } : { rotateX: 0 }}
-                transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ rotateX: 0, zIndex: 30 }}
+                animate={
+                  stage === 'opening' ? { rotateX: -175, zIndex: 5 } : { rotateX: 0, zIndex: 30 }
+                }
+                transition={{
+                  rotateX: { duration: 0.72, ease: [0.16, 1, 0.3, 1] },
+                  // Once the flap passes vertical it belongs behind the rising card
+                  zIndex: { delay: 0.26, duration: 0 },
+                }}
                 style={{
                   transformOrigin: 'top center',
                   transformStyle: 'preserve-3d',
@@ -175,7 +192,7 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
                     ? { duration: 0.35, ease: 'easeOut' }
                     : { duration: 2.8, repeat: Infinity, ease: 'easeInOut' }
                 }
-                className="absolute left-1/2 top-[53%] -translate-x-1/2 -translate-y-1/2 z-40 w-16 h-16 rounded-full bg-[#88292F] shadow-lg border border-[#A63D43] flex items-center justify-center group-hover:scale-105 transition-transform"
+                className="absolute left-1/2 top-[53%] -translate-x-1/2 -translate-y-1/2 z-40 w-[4.5rem] h-[4.5rem] rounded-full bg-gradient-to-br from-[#A03A42] via-[#88292F] to-[#5E1820] shadow-[0_12px_22px_-8px_rgba(94,24,32,0.75)] flex items-center justify-center"
               >
                 <div className="w-12 h-12 rounded-full border border-[#FBF9F5]/35 flex items-center justify-center">
                   <span className="font-serif italic text-sm text-[#FBF9F5] tracking-wider">
@@ -185,12 +202,8 @@ export const EnvelopeIntro: React.FC<EnvelopeIntroProps> = ({
               </motion.div>
             </div>
 
-            <div className="mt-8 flex flex-col items-center gap-3">
-              <button
-                type="button"
-                onClick={handleOpen}
-                className="px-7 py-3 bg-[#88292F] text-[#FBF9F5] text-sm font-medium tracking-wide rounded-sm hover:bg-[#702025] transition-colors cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88292F]"
-              >
+            <div className="mt-10 flex flex-col items-center gap-4">
+              <button type="button" onClick={handleOpen} className="btn btn-primary">
                 Mở Thiệp Mời
               </button>
               <button

@@ -8,11 +8,14 @@ import {
   Check,
   Send,
   Landmark,
+  Minus,
+  Plus,
   Maximize2,
   Download,
   X,
 } from 'lucide-react';
 import { RsvpSubmission, WeddingConfig, WishEntry } from '../types/wedding';
+import { EASE, SectionHeading } from './Ornament';
 
 function getVietQrUrl(bankName: string, accountNumber: string, ownerName: string): string | null {
   const cleanAcc = accountNumber.replace(/\s+/g, '');
@@ -48,6 +51,8 @@ function getVietQrUrl(bankName: string, accountNumber: string, ownerName: string
   )}&addInfo=${encodeURIComponent('Mung cuoi Hoang My & Khanh Vinh')}`;
 }
 
+const WISH_PREVIEW_COUNT = 4;
+
 interface RsvpAndWishesProps {
   config: WeddingConfig;
   wishes: WishEntry[];
@@ -81,8 +86,9 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
   const [wishRelation, setWishRelation] = useState('');
   const [wishMessage, setWishMessage] = useState('');
   const [wishSent, setWishSent] = useState(false);
+  const [showAllWishes, setShowAllWishes] = useState(false);
 
-  // Gift copy & QR state
+  // Gift copy & QR error state
   const [copiedAcc, setCopiedAcc] = useState<string | null>(null);
   const [failedQrMap, setFailedQrMap] = useState<Record<string, boolean>>({});
   const [zoomedQr, setZoomedQr] = useState<{
@@ -144,410 +150,397 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
     .filter((r) => r.attending === 'yes')
     .reduce((acc, r) => acc + r.guestCount, 0);
 
+  const toggleClass = (selected: boolean) =>
+    `py-3 px-3 text-[11px] font-medium tracking-[0.1em] uppercase rounded-xl border transition-all cursor-pointer whitespace-nowrap ${
+      selected
+        ? 'bg-[#88292F] text-[#FFF9F0] border-[#88292F] shadow-[0_8px_18px_-10px_rgba(136,41,47,0.8)]'
+        : 'bg-[#FFFDF9] text-[#75675E] border-[#E4D9C8] hover:border-[#88292F]/40 hover:text-[#88292F]'
+    }`;
+
   return (
-    <section id="xac-nhan" className="py-20 sm:py-28 bg-[#FBF9F5]">
-      <div className="max-w-[1200px] mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          {/* Left Column: RSVP Form */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-6 bg-[#F4EFE6]/70 border border-[#E5DDD0] p-7 sm:p-10 rounded-sm"
-          >
-            <p className="text-xs tracking-[0.22em] uppercase text-[#9A7B4F] mb-2">
-              Hồi Âm Tham Dự
-            </p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1C1917]">
-              Xác Nhận Tham Dự
-            </h2>
-            <p className="mt-3 text-sm text-[#6B655D] leading-relaxed">
-              Sự hiện diện của bạn là niềm vinh hạnh lớn nhất của chúng mình. Vui lòng phản hồi
-              trước ngày 27 tháng 11 để gia đình chuẩn bị tiếp đón chu đáo nhất.
-            </p>
+    <>
+      <section id="xac-nhan" className="py-16 sm:py-28 bg-[#FBF8F2] paper-texture">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-start">
+            {/* RSVP */}
+            <motion.div
+              initial={{ opacity: 0, y: 22 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.75, ease: EASE }}
+              className="card lg:col-span-6 rounded-[1.75rem] p-6 sm:p-10 lg:sticky lg:top-24"
+            >
+              <p className="eyebrow eyebrow-rule-start">Hồi Âm Tham Dự</p>
+              <h2 className="display-title mt-4 !text-[clamp(2rem,3.6vw,2.75rem)]">
+                Xác Nhận <em>Tham Dự</em>
+              </h2>
+              <p className="mt-4 text-sm text-[#75675E] leading-[1.8]">
+                Sự hiện diện của bạn là niềm vinh hạnh lớn nhất của chúng mình. Vui lòng phản hồi
+                trước ngày 27 tháng 11 để gia đình chuẩn bị tiếp đón chu đáo nhất.
+              </p>
 
-            <AnimatePresence mode="wait">
-              {rsvpDone ? (
-                <motion.div
-                  key="rsvp-success"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                  className="mt-8 bg-[#FBF9F5] border border-[#E5DDD0] p-7 rounded-sm text-center"
-                >
-                  <CheckCircle2 className="w-10 h-10 text-[#14532D] mx-auto mb-3" />
-                  <h3 className="font-serif text-2xl font-medium text-[#1C1917]">
-                    Cảm ơn {rsvpDone.fullName}!
-                  </h3>
-                  <p className="text-sm text-[#6B655D] mt-2 leading-relaxed">
-                    {rsvpDone.attending === 'yes'
-                      ? `Gia đình đã ghi nhận xác nhận tham dự ${rsvpDone.ceremonyChoice} (${rsvpDone.guestCount} khách). Hẹn gặp bạn trong ngày vui!`
-                      : 'Rất tiếc vì bạn chưa thể thu xếp tham dự. Cảm ơn bạn đã gửi lời hồi âm ấm áp đến cô dâu chú rể.'}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setRsvpDone(null)}
-                    className="mt-6 px-5 py-2.5 border border-[#D8CBB8] text-xs font-medium text-[#1C1917] rounded-sm hover:border-[#1C1917] transition-colors cursor-pointer"
+              <AnimatePresence mode="wait">
+                {rsvpDone ? (
+                  <motion.div
+                    key="rsvp-success"
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.35, ease: EASE }}
+                    className="mt-8 bg-[#F4EDE1]/70 border border-[#E4D9C8] p-8 rounded-2xl text-center"
                   >
-                    Gửi xác nhận cho khách khác
-                  </button>
-                </motion.div>
-              ) : (
-                <motion.form
-                  key="rsvp-form"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  onSubmit={handleRsvpSubmit}
-                  className="mt-7 space-y-5"
-                >
-                  <div>
-                    <label
-                      htmlFor="rsvp-name"
-                      className="block text-xs font-medium text-[#1C1917] mb-1.5"
+                    <span className="w-14 h-14 mx-auto rounded-full bg-[#14532D]/10 flex items-center justify-center">
+                      <CheckCircle2 className="w-7 h-7 text-[#14532D]" />
+                    </span>
+                    <h3 className="font-serif text-[1.75rem] font-medium text-[#2B1F1C] mt-4">
+                      Cảm ơn {rsvpDone.fullName}!
+                    </h3>
+                    <p className="text-sm text-[#75675E] mt-2 leading-[1.8]">
+                      {rsvpDone.attending === 'yes'
+                        ? `Gia đình đã ghi nhận xác nhận tham dự ${rsvpDone.ceremonyChoice} (${rsvpDone.guestCount} khách). Hẹn gặp bạn trong ngày vui!`
+                        : 'Rất tiếc vì bạn chưa thể thu xếp tham dự. Cảm ơn bạn đã gửi lời hồi âm ấm áp đến cô dâu chú rể.'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setRsvpDone(null)}
+                      className="btn btn-outline btn-sm mt-6"
                     >
-                      Họ và tên khách mời *
-                    </label>
-                    <input
-                      id="rsvp-name"
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Ví dụ: Nguyễn Minh Tuấn"
-                      className="w-full px-3.5 py-2.5 bg-[#FBF9F5] border border-[#D8CBB8] rounded-sm text-sm text-[#1C1917] focus:outline-none focus:border-[#88292F]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      Gửi xác nhận cho khách khác
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.form
+                    key="rsvp-form"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onSubmit={handleRsvpSubmit}
+                    className="mt-8 space-y-5"
+                  >
                     <div>
-                      <label
-                        htmlFor="rsvp-phone"
-                        className="block text-xs font-medium text-[#1C1917] mb-1.5"
-                      >
-                        Số điện thoại
+                      <label htmlFor="rsvp-name" className="field-label">
+                        Họ và tên khách mời *
                       </label>
                       <input
-                        id="rsvp-phone"
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="090x xxx xxx"
-                        className="w-full px-3.5 py-2.5 bg-[#FBF9F5] border border-[#D8CBB8] rounded-sm text-sm text-[#1C1917] focus:outline-none focus:border-[#88292F]"
+                        id="rsvp-name"
+                        type="text"
+                        required
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Ví dụ: Nguyễn Minh Tuấn"
+                        className="field"
                       />
                     </div>
 
-                    <div>
-                      <span className="block text-xs font-medium text-[#1C1917] mb-1.5">
-                        Bạn sẽ tham dự chứ?
-                      </span>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setAttending('yes')}
-                          className={`py-2.5 px-3 text-xs font-medium rounded-sm border transition-colors cursor-pointer whitespace-nowrap ${
-                            attending === 'yes'
-                              ? 'bg-[#88292F] text-[#FBF9F5] border-[#88292F]'
-                              : 'bg-[#FBF9F5] text-[#6B655D] border-[#D8CBB8] hover:text-[#1C1917]'
-                          }`}
-                        >
-                          Sẽ Tham Dự
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setAttending('no')}
-                          className={`py-2.5 px-3 text-xs font-medium rounded-sm border transition-colors cursor-pointer whitespace-nowrap ${
-                            attending === 'no'
-                              ? 'bg-[#1C1917] text-[#FBF9F5] border-[#1C1917]'
-                              : 'bg-[#FBF9F5] text-[#6B655D] border-[#D8CBB8] hover:text-[#1C1917]'
-                          }`}
-                        >
-                          Vắng Mặt
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {attending === 'yes' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label
-                          htmlFor="rsvp-ceremony"
-                          className="block text-xs font-medium text-[#1C1917] mb-1.5"
-                        >
-                          Nghi thức tham dự
+                        <label htmlFor="rsvp-phone" className="field-label">
+                          Số điện thoại
                         </label>
-                        <select
-                          id="rsvp-ceremony"
-                          value={ceremonyChoice}
-                          onChange={(e) => setCeremonyChoice(e.target.value)}
-                          className="w-full px-3.5 py-2.5 bg-[#FBF9F5] border border-[#D8CBB8] rounded-sm text-sm text-[#1C1917] focus:outline-none focus:border-[#88292F]"
-                        >
-                          {config.ceremonies.map((c) => (
-                            <option key={c.id} value={c.label}>
-                              {c.label} ({c.timeRange})
-                            </option>
-                          ))}
-                          <option value="Cả Lễ Thành Hôn (09:00) & Tiệc Rượu (13:00)">
-                            Cả Lễ Thành Hôn (09:00) &amp; Tiệc Rượu (13:00)
-                          </option>
-                        </select>
+                        <input
+                          id="rsvp-phone"
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="090x xxx xxx"
+                          className="field"
+                        />
                       </div>
 
                       <div>
-                        <label
-                          htmlFor="rsvp-count"
-                          className="block text-xs font-medium text-[#1C1917] mb-1.5"
-                        >
-                          Số lượng người tham dự
-                        </label>
-                        <div className="flex items-center border border-[#D8CBB8] bg-[#FBF9F5] rounded-sm">
+                        <span className="field-label">Bạn sẽ tham dự chứ?</span>
+                        <div className="grid grid-cols-2 gap-2">
                           <button
                             type="button"
-                            onClick={() => setGuestCount((c) => Math.max(1, c - 1))}
-                            aria-label="Giảm số khách"
-                            className="px-4 py-2.5 text-sm text-[#1C1917] hover:bg-[#EAE2D3] cursor-pointer"
+                            aria-pressed={attending === 'yes'}
+                            onClick={() => setAttending('yes')}
+                            className={toggleClass(attending === 'yes')}
                           >
-                            −
+                            Sẽ Tham Dự
                           </button>
-                          <span
-                            id="rsvp-count"
-                            className="flex-1 text-center text-sm font-medium tabular-nums"
-                          >
-                            {guestCount} khách
-                          </span>
                           <button
                             type="button"
-                            onClick={() => setGuestCount((c) => Math.min(10, c + 1))}
-                            aria-label="Tăng số khách"
-                            className="px-4 py-2.5 text-sm text-[#1C1917] hover:bg-[#EAE2D3] cursor-pointer"
+                            aria-pressed={attending === 'no'}
+                            onClick={() => setAttending('no')}
+                            className={toggleClass(attending === 'no')}
                           >
-                            +
+                            Vắng Mặt
                           </button>
                         </div>
                       </div>
                     </div>
-                  )}
 
+                    {attending === 'yes' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                          <label htmlFor="rsvp-ceremony" className="field-label">
+                            Nghi thức tham dự
+                          </label>
+                          <select
+                            id="rsvp-ceremony"
+                            value={ceremonyChoice}
+                            onChange={(e) => setCeremonyChoice(e.target.value)}
+                            className="field cursor-pointer"
+                          >
+                            {config.ceremonies.map((c) => (
+                              <option key={c.id} value={c.label}>
+                                {c.label} ({c.timeRange})
+                              </option>
+                            ))}
+                            <option value="Cả Lễ Thành Hôn (09:00) & Tiệc Rượu (13:00)">
+                              Cả Lễ Thành Hôn (09:00) &amp; Tiệc Rượu (13:00)
+                            </option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <span id="rsvp-count-label" className="field-label">
+                            Số lượng người tham dự
+                          </span>
+                          <div
+                            role="group"
+                            aria-labelledby="rsvp-count-label"
+                            className="flex items-center justify-between p-1 border border-[#E4D9C8] bg-[#FFFDF9] rounded-xl"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setGuestCount((c) => Math.max(1, c - 1))}
+                              aria-label="Giảm số khách"
+                              className="w-10 h-10 rounded-lg flex items-center justify-center text-[#88292F] hover:bg-[#F4EDE1] cursor-pointer transition-colors"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="text-sm font-medium tabular-nums" aria-live="polite">
+                              {guestCount} khách
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setGuestCount((c) => Math.min(10, c + 1))}
+                              aria-label="Tăng số khách"
+                              className="w-10 h-10 rounded-lg flex items-center justify-center text-[#88292F] hover:bg-[#F4EDE1] cursor-pointer transition-colors"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label htmlFor="rsvp-note" className="field-label">
+                        Lưu ý thực đơn / dị ứng (nếu có)
+                      </label>
+                      <input
+                        id="rsvp-note"
+                        type="text"
+                        value={dietaryNote}
+                        onChange={(e) => setDietaryNote(e.target.value)}
+                        placeholder="Ví dụ: Ăn chay, không dùng hải sản..."
+                        className="field"
+                      />
+                    </div>
+
+                    <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
+                      <button type="submit" className="btn btn-primary w-full sm:w-auto">
+                        Gửi Xác Nhận
+                      </button>
+
+                      {rsvps.length > 0 && (
+                        <span className="text-xs text-[#75675E] tabular-nums">
+                          Đã có {totalAttendingGuests} khách xác nhận tham dự
+                        </span>
+                      )}
+                    </div>
+                  </motion.form>
+                )}
+              </AnimatePresence>
+
+              <div className="mt-9 pt-7 border-t border-[#E4D9C8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <span className="w-11 h-11 rounded-full bg-[#88292F]/[0.08] text-[#88292F] flex items-center justify-center shrink-0">
+                    <Gift className="w-5 h-5" />
+                  </span>
                   <div>
-                    <label
-                      htmlFor="rsvp-note"
-                      className="block text-xs font-medium text-[#1C1917] mb-1.5"
-                    >
-                      Lưu ý thực đơn / Dị ứng thực phẩm (nếu có)
-                    </label>
-                    <input
-                      id="rsvp-note"
-                      type="text"
-                      value={dietaryNote}
-                      onChange={(e) => setDietaryNote(e.target.value)}
-                      placeholder="Ví dụ: Ăn chay, không dùng hải sản..."
-                      className="w-full px-3.5 py-2.5 bg-[#FBF9F5] border border-[#D8CBB8] rounded-sm text-sm text-[#1C1917] focus:outline-none focus:border-[#88292F]"
-                    />
+                    <h3 className="font-serif text-xl font-semibold text-[#2B1F1C] leading-tight">
+                      Hộp Mừng Cưới
+                    </h3>
+                    <p className="text-xs text-[#75675E] mt-0.5">
+                      Dành cho bạn bè ở xa muốn gửi quà mừng.
+                    </p>
                   </div>
+                </div>
+                <a href="#mung-cuoi" className="btn btn-outline btn-sm shrink-0 w-full sm:w-auto">
+                  Xem Số Tài Khoản
+                </a>
+              </div>
+            </motion.div>
 
-                  <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
-                    <button
-                      type="submit"
-                      className="px-6 py-3 bg-[#88292F] text-[#FBF9F5] text-sm font-medium rounded-sm hover:bg-[#702025] transition-colors cursor-pointer whitespace-nowrap"
-                    >
-                      Gửi Xác Nhận Tham Dự
-                    </button>
+            {/* Guestbook */}
+            <motion.div
+              id="loi-chuc"
+              initial={{ opacity: 0, y: 22 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.75, delay: 0.1, ease: EASE }}
+              className="lg:col-span-6 lg:pt-10"
+            >
+              <p className="eyebrow eyebrow-rule-start">Sổ Lưu Bút</p>
+              <h2 className="display-title mt-4 !text-[clamp(2rem,3.6vw,2.75rem)]">
+                Lời <em>Chúc Phúc</em>
+              </h2>
 
-                    {rsvps.length > 0 && (
-                      <span className="text-xs text-[#6B655D] tabular-nums">
-                        Đã có {totalAttendingGuests} khách xác nhận tham dự
-                      </span>
+              <form onSubmit={handleWishSubmit} className="mt-7 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    required
+                    value={wishAuthor}
+                    onChange={(e) => setWishAuthor(e.target.value)}
+                    placeholder="Tên của bạn *"
+                    aria-label="Tên của bạn"
+                    className="field"
+                  />
+                  <input
+                    type="text"
+                    value={wishRelation}
+                    onChange={(e) => setWishRelation(e.target.value)}
+                    placeholder="Mối quan hệ (Bạn thân, Đồng nghiệp...)"
+                    aria-label="Mối quan hệ"
+                    className="field"
+                  />
+                </div>
+                <textarea
+                  rows={3}
+                  required
+                  value={wishMessage}
+                  onChange={(e) => setWishMessage(e.target.value)}
+                  placeholder="Viết lời chúc tốt đẹp nhất gửi đến cô dâu chú rể..."
+                  aria-label="Lời chúc"
+                  className="field resize-none"
+                />
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="sm:min-h-5" aria-live="polite">
+                    {wishSent && (
+                      <motion.span
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-[#14532D]"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Cảm ơn bạn đã gửi lời chúc phúc!</span>
+                      </motion.span>
                     )}
                   </div>
-                </motion.form>
-              )}
-            </AnimatePresence>
-
-            {/* Wedding Gift Box quick jump */}
-            <div className="mt-8 pt-6 border-t border-[#E5DDD0] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="font-serif text-xl font-medium text-[#1C1917]">
-                  Hộp Mừng Cưới Trực Tuyến
-                </h3>
-                <p className="text-xs text-[#6B655D] mt-0.5">
-                  Dành cho bạn bè ở xa muốn gửi quà mừng đến cô dâu &amp; chú rể.
-                </p>
-              </div>
-              <a
-                href="#mung-cuoi"
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#FBF9F5] border border-[#88292F]/40 text-[#88292F] text-xs font-medium rounded-sm hover:bg-[#88292F] hover:text-[#FBF9F5] transition-colors whitespace-nowrap shrink-0"
-              >
-                <Gift className="w-4 h-4" />
-                <span>Xem STK Mừng Cưới</span>
-              </a>
-            </div>
-          </motion.div>
-
-          {/* Right Column: Live Guestbook Wishes */}
-          <motion.div
-            id="loi-chuc"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-6"
-          >
-            <p className="text-xs tracking-[0.22em] uppercase text-[#9A7B4F] mb-2">
-              Sổ Lưu Bút
-            </p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1C1917]">
-              Lời Chúc Phúc
-            </h2>
-
-            {/* Add Wish Form */}
-            <form
-              onSubmit={handleWishSubmit}
-              className="mt-6 bg-[#FBF9F5] border border-[#E5DDD0] p-5 rounded-sm space-y-3"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  required
-                  value={wishAuthor}
-                  onChange={(e) => setWishAuthor(e.target.value)}
-                  placeholder="Tên của bạn *"
-                  aria-label="Tên của bạn"
-                  className="px-3.5 py-2.5 bg-[#F4EFE6]/50 border border-[#D8CBB8] rounded-sm text-sm text-[#1C1917] focus:outline-none focus:border-[#88292F]"
-                />
-                <input
-                  type="text"
-                  value={wishRelation}
-                  onChange={(e) => setWishRelation(e.target.value)}
-                  placeholder="Mối quan hệ (Bạn thân, Đồng nghiệp...)"
-                  aria-label="Mối quan hệ"
-                  className="px-3.5 py-2.5 bg-[#F4EFE6]/50 border border-[#D8CBB8] rounded-sm text-sm text-[#1C1917] focus:outline-none focus:border-[#88292F]"
-                />
-              </div>
-              <textarea
-                rows={3}
-                required
-                value={wishMessage}
-                onChange={(e) => setWishMessage(e.target.value)}
-                placeholder="Viết lời chúc tốt đẹp nhất gửi đến cô dâu chú rể..."
-                aria-label="Lời chúc"
-                className="w-full px-3.5 py-2.5 bg-[#F4EFE6]/50 border border-[#D8CBB8] rounded-sm text-sm text-[#1C1917] focus:outline-none focus:border-[#88292F] resize-none"
-              />
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-h-5">
-                  {wishSent && (
-                    <motion.span
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-[#14532D]"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                      <span>Cảm ơn bạn đã gửi lời chúc phúc!</span>
-                    </motion.span>
-                  )}
+                  <button type="submit" className="btn btn-dark btn-sm w-full sm:w-auto">
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Gửi Lời Chúc</span>
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1C1917] text-[#FBF9F5] text-xs font-medium rounded-sm hover:bg-[#36312E] transition-colors cursor-pointer"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Gửi Lời Chúc</span>
-                </button>
-              </div>
-            </form>
+              </form>
 
-            {/* Wishes List */}
-            <div className="mt-6 space-y-4 max-h-[540px] overflow-y-auto pr-1">
-              <AnimatePresence initial={false}>
-                {wishes.map((wish) => (
-                  <motion.article
-                    key={wish.id}
-                    layout
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                    className="p-5 bg-[#F4EFE6]/45 border border-[#E5DDD0] rounded-sm"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="font-medium text-sm text-[#1C1917]">{wish.author}</h3>
-                        <p className="text-xs text-[#6B655D] mt-0.5">
-                          {wish.relation} · {wish.createdAt}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => onHeartWish(wish.id)}
-                        aria-label={`Thả tim lời chúc của ${wish.author}`}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-[#88292F] hover:bg-[#88292F]/10 rounded-sm transition-colors cursor-pointer tabular-nums"
+              <div className="thin-scroll mt-8 space-y-4 lg:max-h-[560px] lg:overflow-y-auto lg:pr-2 lg:-mr-2">
+                <AnimatePresence initial={false}>
+                  {(showAllWishes ? wishes : wishes.slice(0, WISH_PREVIEW_COUNT)).map((wish) => (
+                    <motion.article
+                      key={wish.id}
+                      layout
+                      initial={{ opacity: 0, y: 14 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4, ease: EASE }}
+                      className="relative p-6 bg-[#FFFDF9] border border-[#E4D9C8] rounded-2xl overflow-hidden"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="absolute -top-3 right-5 font-serif text-[7rem] leading-none text-[#C9A66B]/20 select-none"
                       >
-                        <Heart className="w-3.5 h-3.5 fill-[#88292F]/20" />
-                        <span>{wish.hearts}</span>
-                      </button>
-                    </div>
-                    <p className="mt-3 text-sm text-[#1C1917]/90 leading-relaxed">
-                      “{wish.message}”
-                    </p>
-                  </motion.article>
-                ))}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        </div>
+                        ”
+                      </span>
+                      <p className="relative font-serif italic text-[1.2rem] leading-[1.6] text-[#2B1F1C]">
+                        {wish.message}
+                      </p>
+                      <div className="relative mt-5 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="w-10 h-10 rounded-full bg-gradient-to-br from-[#A03A42] to-[#5E1820] text-[#FBF3E4] font-serif text-lg flex items-center justify-center shrink-0">
+                            {wish.author.trim().charAt(0).toUpperCase()}
+                          </span>
+                          <div className="min-w-0">
+                            <h3 className="font-sans font-medium text-sm text-[#2B1F1C] truncate">
+                              {wish.author}
+                            </h3>
+                            <p className="text-xs text-[#75675E] mt-0.5 truncate">
+                              {wish.relation} · {wish.createdAt}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onHeartWish(wish.id)}
+                          aria-label={`Thả tim lời chúc của ${wish.author}`}
+                          className="group inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#88292F] border border-[#88292F]/20 hover:bg-[#88292F]/[0.07] rounded-full transition-colors cursor-pointer tabular-nums shrink-0"
+                        >
+                          <Heart className="w-3.5 h-3.5 fill-[#88292F]/25 group-hover:fill-[#88292F] group-active:scale-125 transition-all" />
+                          <span>{wish.hearts}</span>
+                        </button>
+                      </div>
+                    </motion.article>
+                  ))}
+                </AnimatePresence>
+              </div>
 
-        {/* Directly Visible Wedding Gift / Bank STK Section */}
-        <motion.div
-          id="mung-cuoi"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-20 pt-16 border-t border-[#E5DDD0]"
-        >
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <p className="text-xs tracking-[0.22em] uppercase text-[#9A7B4F] mb-2">
-              Gửi Trao Yêu Thương
-            </p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-medium text-[#1C1917]">
-              Hộp Mừng Cưới &amp; Số Tài Khoản
-            </h2>
-            <p className="mt-3 text-sm text-[#6B655D] leading-relaxed">
-              Nếu không thể đến chung vui trực tiếp, bạn có thể gửi tấm lòng mừng cưới qua thông tin tài khoản hoặc mã QR dưới đây.
-            </p>
+              {wishes.length > WISH_PREVIEW_COUNT && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllWishes((v) => !v)}
+                  aria-expanded={showAllWishes}
+                  className="btn btn-outline btn-sm mt-5 w-full sm:w-auto"
+                >
+                  {showAllWishes
+                    ? 'Thu Gọn'
+                    : `Xem Thêm ${wishes.length - WISH_PREVIEW_COUNT} Lời Chúc`}
+                </button>
+              )}
+            </motion.div>
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-            {config.bankAccounts.map((acc) => {
+      {/* Wedding gift / bank accounts */}
+      <section id="mung-cuoi" className="py-16 sm:py-28 bg-[#F4EDE1] border-t border-[#E4D9C8]">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-8">
+          <SectionHeading
+            eyebrow="Gửi Trao Yêu Thương"
+            title={
+              <>
+                Hộp <em>Mừng Cưới</em>
+              </>
+            }
+            description="Nếu không thể đến chung vui trực tiếp, bạn có thể gửi tấm lòng mừng cưới qua thông tin tài khoản hoặc mã QR dưới đây."
+            className="mb-12"
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[920px] mx-auto">
+            {config.bankAccounts.map((acc, idx) => {
               const qrUrl =
-                acc.qrImage ||
-                getVietQrUrl(acc.bankName, acc.accountNumber, acc.ownerName);
+                acc.qrImage || getVietQrUrl(acc.bankName, acc.accountNumber, acc.ownerName);
               const qrKey = `${acc.role}:${qrUrl || ''}`;
               const showQr = Boolean(qrUrl) && !failedQrMap[qrKey];
 
               return (
-                <div
+                <motion.div
                   key={acc.role}
-                  className="p-6 sm:p-8 bg-[#F4EFE6]/70 border border-[#E5DDD0] rounded-sm flex flex-col justify-between gap-6"
+                  initial={{ opacity: 0, y: 22 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.7, delay: idx * 0.1, ease: EASE }}
+                  className="card rounded-[1.75rem] p-7 sm:p-8 flex flex-col items-center text-center"
                 >
-                  {/* Card Header */}
-                  <div className="text-center">
-                    <span className="inline-flex items-center gap-1.5 text-xs tracking-[0.16em] uppercase text-[#88292F] font-medium">
-                      <Landmark className="w-3.5 h-3.5 shrink-0" />
-                      <span>{acc.role}</span>
-                    </span>
-                    <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#1C1917] mt-1.5">
-                      {acc.bankName}
-                    </h3>
-                    {acc.branch && (
-                      <p className="text-xs text-[#6B655D] mt-0.5">{acc.branch}</p>
-                    )}
-                  </div>
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#88292F]/[0.07] text-[10px] font-medium tracking-[0.24em] uppercase text-[#88292F]">
+                    <Landmark className="w-3.5 h-3.5 shrink-0" />
+                    <span>{acc.role}</span>
+                  </span>
 
-                  {/* Centered Prominent QR Frame */}
                   {showQr && qrUrl && (
-                    <div className="flex flex-col items-center">
+                    <>
                       <button
                         type="button"
                         onClick={() =>
@@ -560,7 +553,7 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
                           })
                         }
                         aria-label={`Phóng to mã QR ${acc.role}`}
-                        className="group relative w-52 h-52 sm:w-56 sm:h-56 bg-white p-3 border border-[#E5DDD0] rounded-sm shadow-xs hover:border-[#88292F]/50 transition-colors cursor-pointer"
+                        className="group relative mt-6 w-48 h-48 sm:w-52 sm:h-52 p-3 bg-white border border-[#E4D9C8] rounded-2xl shadow-[var(--shadow-soft)] hover:border-[#88292F]/50 transition-colors cursor-pointer"
                       >
                         <img
                           key={qrKey}
@@ -572,48 +565,43 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
                           }
                           className="w-full h-full object-contain"
                         />
-                        <span className="absolute bottom-2 right-2 p-1.5 rounded-sm bg-[#FBF9F5]/95 border border-[#E5DDD0] text-[#6B655D] opacity-80 group-hover:opacity-100 group-hover:text-[#88292F] transition-all">
+                        <span className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-[#FFFDF9] border border-[#E4D9C8] text-[#75675E] flex items-center justify-center group-hover:text-[#88292F] transition-colors">
                           <Maximize2 className="w-3.5 h-3.5" />
                         </span>
                       </button>
-                      <p className="text-[11px] text-[#6B655D] mt-2">
-                        Nhấn vào mã QR để phóng to hoặc lưu ảnh
+                      <p className="text-[11px] text-[#75675E] mt-2.5">
+                        Chạm vào mã QR để phóng to hoặc lưu ảnh
                       </p>
-                    </div>
+                    </>
                   )}
 
-                  {/* Full-width Account Details */}
-                  <div className="pt-4 border-t border-[#E5DDD0] space-y-2.5 text-center">
-                    <div>
-                      <p className="text-xs text-[#6B655D]">Chủ tài khoản</p>
-                      <p className="font-medium text-sm sm:text-base text-[#1C1917] mt-0.5">
-                        {acc.ownerName}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-[#6B655D]">Số tài khoản (STK)</p>
-                      <p className="font-semibold text-xl text-[#88292F] tabular-nums tracking-wider mt-0.5">
-                        {acc.accountNumber}
-                      </p>
-                    </div>
-                  </div>
+                  <h3 className="font-serif text-[1.75rem] font-medium text-[#2B1F1C] mt-6 leading-tight">
+                    {acc.bankName}
+                  </h3>
+                  {acc.branch && <p className="text-xs text-[#75675E] mt-1">{acc.branch}</p>}
 
-                  {/* Card Actions */}
-                  <div className="flex flex-wrap items-center gap-2.5">
+                  <p className="mt-5 font-serif text-[2rem] font-semibold text-[#88292F] tabular-nums tracking-wide leading-none">
+                    {acc.accountNumber}
+                  </p>
+                  <p className="mt-2.5 text-[11px] tracking-[0.2em] uppercase text-[#75675E]">
+                    {acc.ownerName}
+                  </p>
+
+                  <div className="mt-7 w-full flex gap-2.5">
                     <button
                       type="button"
                       onClick={() => handleCopyAccount(acc.accountNumber)}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FBF9F5] border border-[#D8CBB8] text-xs font-medium text-[#1C1917] rounded-sm hover:border-[#1C1917] transition-colors cursor-pointer whitespace-nowrap"
+                      className="btn btn-outline btn-sm flex-1"
                     >
                       {copiedAcc === acc.accountNumber ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-[#14532D]" />
-                          <span>Đã sao chép STK</span>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Đã Sao Chép</span>
                         </>
                       ) : (
                         <>
-                          <Copy className="w-3.5 h-3.5 text-[#6B655D]" />
-                          <span>Sao chép STK</span>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Sao Chép STK</span>
                         </>
                       )}
                     </button>
@@ -624,21 +612,21 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
                         download={`QR-${acc.bankName}-${acc.accountNumber.replace(/\s+/g, '')}.png`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-white border border-[#D8CBB8] text-xs font-medium text-[#1C1917] rounded-sm hover:border-[#88292F] hover:text-[#88292F] transition-colors whitespace-nowrap"
+                        className="btn btn-outline btn-sm shrink-0"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Lưu QR</span>
                       </a>
                     )}
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </section>
 
-      {/* Fullscreen QR Lightbox */}
+      {/* Fullscreen QR lightbox */}
       <AnimatePresence>
         {zoomedQr && (
           <motion.div
@@ -646,7 +634,7 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setZoomedQr(null)}
-            className="fixed inset-0 z-50 bg-[#141210]/85 backdrop-blur-xs flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-[#150406]/85 backdrop-blur-md flex items-center justify-center p-4"
             role="dialog"
             aria-modal="true"
             aria-label={`Mã QR ${zoomedQr.role}`}
@@ -655,27 +643,27 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
               initial={{ opacity: 0, scale: 0.94, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: 10 }}
-              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.26, ease: EASE }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm bg-[#FBF9F5] border border-[#E5DDD0] rounded-sm p-6 text-center shadow-2xl relative"
+              className="card relative w-full max-w-sm rounded-[1.75rem] p-7 text-center shadow-2xl"
             >
               <button
                 type="button"
                 onClick={() => setZoomedQr(null)}
                 aria-label="Đóng mã QR"
-                className="absolute right-3 top-3 p-1.5 text-[#6B655D] hover:text-[#1C1917] cursor-pointer"
+                className="absolute right-4 top-4 w-9 h-9 rounded-full border border-[#E4D9C8] text-[#75675E] hover:text-[#88292F] hover:border-[#88292F]/40 flex items-center justify-center cursor-pointer transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
 
-              <p className="text-xs tracking-[0.16em] uppercase text-[#88292F] font-medium">
+              <p className="text-[10px] font-medium tracking-[0.24em] uppercase text-[#88292F]">
                 {zoomedQr.role}
               </p>
-              <h3 className="font-serif text-2xl font-medium text-[#1C1917] mt-1">
+              <h3 className="font-serif text-[1.75rem] font-medium text-[#2B1F1C] mt-1.5 leading-tight">
                 {zoomedQr.bankName}
               </h3>
 
-              <div className="mt-4 bg-white p-3 border border-[#E5DDD0] rounded-sm mx-auto w-full max-w-[280px] aspect-square flex items-center justify-center">
+              <div className="mt-5 mx-auto w-full max-w-[280px] aspect-square p-3 bg-white border border-[#E4D9C8] rounded-2xl flex items-center justify-center">
                 <img
                   src={zoomedQr.src}
                   alt={`Mã QR ${zoomedQr.ownerName}`}
@@ -683,16 +671,27 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
                 />
               </div>
 
-              <div className="mt-4 space-y-1">
-                <p className="font-medium text-sm text-[#1C1917]">{zoomedQr.ownerName}</p>
-                <p className="font-semibold text-lg text-[#88292F] tabular-nums tracking-wider">
-                  {zoomedQr.accountNumber}
-                </p>
-              </div>
+              <p className="mt-5 font-serif text-[1.75rem] font-semibold text-[#88292F] tabular-nums tracking-wide leading-none">
+                {zoomedQr.accountNumber}
+              </p>
+              <p className="mt-2.5 text-[11px] tracking-[0.2em] uppercase text-[#75675E]">
+                {zoomedQr.ownerName}
+              </p>
+
+              <a
+                href={zoomedQr.src}
+                download={`QR-${zoomedQr.bankName}-${zoomedQr.accountNumber.replace(/\s+/g, '')}.png`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary btn-sm mt-6 w-full"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Lưu Mã QR</span>
+              </a>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </section>
+    </>
   );
 };

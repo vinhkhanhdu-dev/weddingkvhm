@@ -14,6 +14,7 @@ import { CeremonySchedule } from './components/CeremonySchedule';
 import { GallerySection } from './components/GallerySection';
 import { RsvpAndWishes } from './components/RsvpAndWishes';
 import { SettingsPage } from './components/SettingsPage';
+import { Ornament } from './components/Ornament';
 
 function isSettingsRoute(): boolean {
   if (typeof window === 'undefined') return false;
@@ -205,7 +206,7 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-screen bg-[#FBF9F5] text-[#1C1917] relative overflow-x-clip">
+      <div className="min-h-screen bg-[#FBF8F2] text-[#2B1F1C] relative overflow-x-clip">
         {introOpen && (
           <EnvelopeIntro
             key={introKey}
@@ -249,26 +250,26 @@ export default function App() {
           />
         </main>
 
-        <footer className="bg-[#F4EFE6] border-t border-[#E5DDD0] py-14 px-6">
-          <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
-            <div>
-              <p className="font-serif italic text-3xl text-[#1C1917]">
-                {config.brideName} <span className="text-[#88292F]">&amp;</span> {config.groomName}
-              </p>
-              <p className="text-xs text-[#6B655D] mt-1">
-                {config.displayDate} · {config.city} — Cảm ơn bạn đã là một phần trong ngày hạnh phúc của chúng mình.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
-              <button
-                type="button"
-                onClick={handleReplayIntro}
-                className="text-[#6B655D] hover:text-[#1C1917] underline underline-offset-4 cursor-pointer"
-              >
-                Mở lại phong bì
-              </button>
-            </div>
+        <footer className="wine-surface relative px-6 pt-16 sm:pt-20 pb-36 lg:pb-16 text-center overflow-hidden">
+          <div className="max-w-[720px] mx-auto">
+            <p className="eyebrow eyebrow-rule !text-[#C9A66B]">Trân Trọng Cảm Ơn</p>
+            <p className="font-script text-[clamp(1.5rem,7.6vw,4rem)] whitespace-nowrap text-[#FBF3E4] mt-6 pt-2">
+              {config.brideName} <span className="text-[#C9A66B]">&amp;</span> {config.groomName}
+            </p>
+            <Ornament className="text-[#C9A66B] mx-auto mt-5" />
+            <p className="mt-6 font-serif italic text-xl text-[#E9D9C4]/85 leading-relaxed text-balance">
+              Cảm ơn bạn đã là một phần trong ngày hạnh phúc của chúng mình.
+            </p>
+            <p className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3 text-[11px] tracking-[0.26em] uppercase text-[#C9A66B] whitespace-nowrap">
+              <span>{config.displayDate}</span>
+              <span aria-hidden="true" className="hidden sm:inline">
+                ·
+              </span>
+              <span>{config.city}</span>
+            </p>
+            <button type="button" onClick={handleReplayIntro} className="btn btn-gold btn-sm mt-9">
+              Mở Lại Phong Bì
+            </button>
           </div>
         </footer>
       </div>

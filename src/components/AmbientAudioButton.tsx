@@ -108,18 +108,18 @@ export const AmbientAudioButton: React.FC = () => {
       type="button"
       onClick={toggle}
       aria-label={isPlaying ? 'Tắt nhạc nền' : 'Bật nhạc nền'}
-      className="fixed bottom-5 left-5 z-40 flex items-center gap-2.5 px-4 py-2.5 bg-[#FBF9F5]/95 backdrop-blur-md border border-[#E5DDD0] text-[#1C1917] rounded-full shadow-sm hover:border-[#88292F]/50 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88292F]"
+      className="fixed z-40 right-4 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] lg:right-auto lg:left-5 lg:bottom-5 w-11 h-11 lg:w-auto lg:h-auto flex items-center justify-center gap-2.5 lg:pl-3.5 lg:pr-4 lg:py-2.5 bg-[#FFFDF9]/90 backdrop-blur-xl border border-[#E4D9C8] text-[#2B1F1C] rounded-full shadow-[0_12px_28px_-14px_rgba(59,15,21,0.45)] hover:border-[#88292F]/50 transition-colors cursor-pointer"
     >
       {isPlaying ? (
         <Volume2 className="w-4 h-4 text-[#88292F] shrink-0" />
       ) : (
         <VolumeX className="w-4 h-4 text-[#6B655D] shrink-0" />
       )}
-      <span className="text-xs font-medium tracking-wide whitespace-nowrap">
+      <span className="hidden lg:inline text-xs font-medium tracking-wide whitespace-nowrap">
         {isPlaying ? 'Nhạc Đang Phát' : 'Bật Nhạc Nền'}
       </span>
       {isPlaying && (
-        <span className="flex items-end gap-0.5 h-3" aria-hidden="true">
+        <span className="hidden lg:flex items-end gap-0.5 h-3" aria-hidden="true">
           {[0, 1, 2].map((bar) => (
             <motion.span
               key={bar}
