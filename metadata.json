@@ -1,0 +1,6 @@
+{
+  "name": "Thiệp Cưới Trực Tuyến — Minh Anh & Hoàng Nam",
+  "description": "Trang web thiệp cưới trực tuyến tinh tế với hiệu ứng mở phong bì, câu chuyện tình yêu, lịch trình hôn lễ, album ảnh, xác nhận tham dự và sổ lưu bút.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
