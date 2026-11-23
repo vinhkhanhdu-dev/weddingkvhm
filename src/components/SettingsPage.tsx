@@ -152,7 +152,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const result = await resizeImageFileToDataUrl(file, 640);
+      const result = await resizeImageFileToDataUrl(file, 900);
       setDraft((prev) => {
         const next = [...prev.bankAccounts];
         if (!next[accountIndex]) return prev;

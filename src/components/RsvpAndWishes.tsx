@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, CheckCircle2, Gift, Copy, Check, Send, Landmark } from 'lucide-react';
+import {
+  Heart,
+  CheckCircle2,
+  Gift,
+  Copy,
+  Check,
+  Send,
+  Landmark,
+  Maximize2,
+  Download,
+  X,
+} from 'lucide-react';
 import { RsvpSubmission, WeddingConfig, WishEntry } from '../types/wedding';
 
 function getVietQrUrl(bankName: string, accountNumber: string, ownerName: string): string | null {
@@ -32,7 +43,7 @@ function getVietQrUrl(bankName: string, accountNumber: string, ownerName: string
   };
   const code = bankMap[normalizedBank];
   if (!code || !cleanAcc) return null;
-  return `https://img.vietqr.io/image/${code}-${cleanAcc}-compact2.png?accountName=${encodeURIComponent(
+  return `https://img.vietqr.io/image/${code}-${cleanAcc}-qr_only.png?accountName=${encodeURIComponent(
     ownerName
   )}&addInfo=${encodeURIComponent('Mung cuoi Hoang My & Khanh Vinh')}`;
 }
@@ -71,9 +82,16 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
   const [wishMessage, setWishMessage] = useState('');
   const [wishSent, setWishSent] = useState(false);
 
-  // Gift copy & QR error state
+  // Gift copy & QR state
   const [copiedAcc, setCopiedAcc] = useState<string | null>(null);
   const [failedQrMap, setFailedQrMap] = useState<Record<string, boolean>>({});
+  const [zoomedQr, setZoomedQr] = useState<{
+    src: string;
+    role: string;
+    ownerName: string;
+    bankName: string;
+    accountNumber: string;
+  } | null>(null);
 
   const handleRsvpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -511,37 +529,39 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
               return (
                 <div
                   key={acc.role}
-                  className="p-6 sm:p-7 bg-[#F4EFE6]/70 border border-[#E5DDD0] rounded-sm flex flex-col justify-between gap-6"
+                  className="p-6 sm:p-8 bg-[#F4EFE6]/70 border border-[#E5DDD0] rounded-sm flex flex-col justify-between gap-6"
                 >
-                  <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <span className="inline-flex items-center gap-1.5 text-xs tracking-[0.14em] uppercase text-[#88292F] font-medium">
-                        <Landmark className="w-3.5 h-3.5 shrink-0" />
-                        <span>{acc.role}</span>
-                      </span>
-                      <h3 className="font-serif text-2xl font-medium text-[#1C1917] mt-2">
-                        {acc.bankName}
-                      </h3>
-                      {acc.branch && (
-                        <p className="text-xs text-[#6B655D] mt-0.5">{acc.branch}</p>
-                      )}
+                  {/* Card Header */}
+                  <div className="text-center">
+                    <span className="inline-flex items-center gap-1.5 text-xs tracking-[0.16em] uppercase text-[#88292F] font-medium">
+                      <Landmark className="w-3.5 h-3.5 shrink-0" />
+                      <span>{acc.role}</span>
+                    </span>
+                    <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#1C1917] mt-1.5">
+                      {acc.bankName}
+                    </h3>
+                    {acc.branch && (
+                      <p className="text-xs text-[#6B655D] mt-0.5">{acc.branch}</p>
+                    )}
+                  </div>
 
-                      <div className="mt-4 pt-4 border-t border-[#E5DDD0] space-y-2 text-sm">
-                        <div>
-                          <p className="text-xs text-[#6B655D]">Chủ tài khoản</p>
-                          <p className="font-medium text-[#1C1917]">{acc.ownerName}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-[#6B655D]">Số tài khoản (STK)</p>
-                          <p className="font-semibold text-lg text-[#88292F] tabular-nums tracking-wide">
-                            {acc.accountNumber}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {showQr && qrUrl && (
-                      <div className="shrink-0 self-center sm:self-start bg-white p-2 border border-[#E5DDD0] rounded-sm">
+                  {/* Centered Prominent QR Frame */}
+                  {showQr && qrUrl && (
+                    <div className="flex flex-col items-center">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setZoomedQr({
+                            src: qrUrl,
+                            role: acc.role,
+                            ownerName: acc.ownerName,
+                            bankName: acc.bankName,
+                            accountNumber: acc.accountNumber,
+                          })
+                        }
+                        aria-label={`Phóng to mã QR ${acc.role}`}
+                        className="group relative w-52 h-52 sm:w-56 sm:h-56 bg-white p-3 border border-[#E5DDD0] rounded-sm shadow-xs hover:border-[#88292F]/50 transition-colors cursor-pointer"
+                      >
                         <img
                           key={qrKey}
                           src={qrUrl}
@@ -550,35 +570,129 @@ export const RsvpAndWishes: React.FC<RsvpAndWishesProps> = ({
                           onError={() =>
                             setFailedQrMap((prev) => ({ ...prev, [qrKey]: true }))
                           }
-                          className="w-36 h-36 object-contain"
+                          className="w-full h-full object-contain"
                         />
-                      </div>
-                    )}
+                        <span className="absolute bottom-2 right-2 p-1.5 rounded-sm bg-[#FBF9F5]/95 border border-[#E5DDD0] text-[#6B655D] opacity-80 group-hover:opacity-100 group-hover:text-[#88292F] transition-all">
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </span>
+                      </button>
+                      <p className="text-[11px] text-[#6B655D] mt-2">
+                        Nhấn vào mã QR để phóng to hoặc lưu ảnh
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Full-width Account Details */}
+                  <div className="pt-4 border-t border-[#E5DDD0] space-y-2.5 text-center">
+                    <div>
+                      <p className="text-xs text-[#6B655D]">Chủ tài khoản</p>
+                      <p className="font-medium text-sm sm:text-base text-[#1C1917] mt-0.5">
+                        {acc.ownerName}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[#6B655D]">Số tài khoản (STK)</p>
+                      <p className="font-semibold text-xl text-[#88292F] tabular-nums tracking-wider mt-0.5">
+                        {acc.accountNumber}
+                      </p>
+                    </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleCopyAccount(acc.accountNumber)}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FBF9F5] border border-[#D8CBB8] text-xs font-medium text-[#1C1917] rounded-sm hover:border-[#1C1917] transition-colors cursor-pointer"
-                  >
-                    {copiedAcc === acc.accountNumber ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-[#14532D]" />
-                        <span>Đã sao chép số tài khoản</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5 text-[#6B655D]" />
-                        <span>Sao chép số tài khoản</span>
-                      </>
+                  {/* Card Actions */}
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => handleCopyAccount(acc.accountNumber)}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FBF9F5] border border-[#D8CBB8] text-xs font-medium text-[#1C1917] rounded-sm hover:border-[#1C1917] transition-colors cursor-pointer whitespace-nowrap"
+                    >
+                      {copiedAcc === acc.accountNumber ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-[#14532D]" />
+                          <span>Đã sao chép STK</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-[#6B655D]" />
+                          <span>Sao chép STK</span>
+                        </>
+                      )}
+                    </button>
+
+                    {showQr && qrUrl && (
+                      <a
+                        href={qrUrl}
+                        download={`QR-${acc.bankName}-${acc.accountNumber.replace(/\s+/g, '')}.png`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-white border border-[#D8CBB8] text-xs font-medium text-[#1C1917] rounded-sm hover:border-[#88292F] hover:text-[#88292F] transition-colors whitespace-nowrap"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Lưu QR</span>
+                      </a>
                     )}
-                  </button>
+                  </div>
                 </div>
               );
             })}
           </div>
         </motion.div>
       </div>
+
+      {/* Fullscreen QR Lightbox */}
+      <AnimatePresence>
+        {zoomedQr && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setZoomedQr(null)}
+            className="fixed inset-0 z-50 bg-[#141210]/85 backdrop-blur-xs flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Mã QR ${zoomedQr.role}`}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 10 }}
+              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm bg-[#FBF9F5] border border-[#E5DDD0] rounded-sm p-6 text-center shadow-2xl relative"
+            >
+              <button
+                type="button"
+                onClick={() => setZoomedQr(null)}
+                aria-label="Đóng mã QR"
+                className="absolute right-3 top-3 p-1.5 text-[#6B655D] hover:text-[#1C1917] cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <p className="text-xs tracking-[0.16em] uppercase text-[#88292F] font-medium">
+                {zoomedQr.role}
+              </p>
+              <h3 className="font-serif text-2xl font-medium text-[#1C1917] mt-1">
+                {zoomedQr.bankName}
+              </h3>
+
+              <div className="mt-4 bg-white p-3 border border-[#E5DDD0] rounded-sm mx-auto w-full max-w-[280px] aspect-square flex items-center justify-center">
+                <img
+                  src={zoomedQr.src}
+                  alt={`Mã QR ${zoomedQr.ownerName}`}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+
+              <div className="mt-4 space-y-1">
+                <p className="font-medium text-sm text-[#1C1917]">{zoomedQr.ownerName}</p>
+                <p className="font-semibold text-lg text-[#88292F] tabular-nums tracking-wider">
+                  {zoomedQr.accountNumber}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
