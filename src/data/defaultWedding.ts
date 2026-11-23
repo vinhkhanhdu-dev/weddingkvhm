@@ -223,16 +223,16 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
     {
       role: 'Mừng Cưới Chú Rể',
       ownerName: 'DU KHANH VINH',
-      bankName: 'Vietcombank',
-      accountNumber: '1029 8472 0019',
-      branch: 'Chi nhánh Vĩnh Long',
+      bankName: 'VietinBank',
+      accountNumber: '107868380513',
+      branch: 'CN Trà Vinh - PGD Nguyễn Đáng',
     },
     {
       role: 'Mừng Cưới Cô Dâu',
       ownerName: 'HUYNH THI HOANG MY',
-      bankName: 'Techcombank',
-      accountNumber: '1903 7721 8850',
-      branch: 'Chi nhánh Vĩnh Long',
+      bankName: 'Agribank',
+      accountNumber: '7409215069365',
+      branch: 'Chi nhánh H. Châu Thành - Trà Vinh',
     },
   ],
 };
