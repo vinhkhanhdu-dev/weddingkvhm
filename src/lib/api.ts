@@ -2,17 +2,13 @@ import { RsvpSubmission, WeddingConfig, WishEntry } from '../types/wedding';
 
 /**
  * API base URL.
- * - Dev: '' → same origin, Vite proxies /api to the local Express server.
- * - Production: set VITE_API_URL at build time (e.g. https://wedding-api.example.com).
- *   There is no offline copy: when unset in production the page shows a configuration error.
+ * - Default '' → same origin: Vite proxies /api in dev, and on Vercel the API runs as a
+ *   serverless function on the same domain (api/index.ts).
+ * - Set VITE_API_URL at build time only when the site is hosted elsewhere (e.g. GitHub
+ *   Pages pointing at https://<project>.vercel.app).
  */
 const configured = import.meta.env.VITE_API_URL as string | undefined;
-const API_BASE: string | null =
-  configured !== undefined && configured !== ''
-    ? configured.replace(/\/+$/, '')
-    : import.meta.env.DEV
-      ? ''
-      : null;
+const API_BASE: string | null = configured ? configured.replace(/\/+$/, '') : '';
 
 export const isApiConfigured = API_BASE !== null;
 

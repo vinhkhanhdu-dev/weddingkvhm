@@ -1,4 +1,4 @@
-# Render Blueprint for the wedding API (server/index.ts).
+# Render Blueprint for the wedding API (server/index.ts → server/app.ts).
 # Render dashboard → New → Blueprint → pick this repo. Secrets marked `sync: false`
 # are typed into the dashboard once and never stored in git.
 services:
